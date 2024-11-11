@@ -125,7 +125,7 @@ class Project:
             print(ex)
 
     @app.command(short_help="Set project properties")
-    def set(id: Annotated[str, typer.Option(help="project Id to use")], temp: Annotated[float, typer.Option(help="Set a temparature between 0.0 and 1.0")] = 0.3):
+    def set(id: Annotated[str, typer.Option(help="project Id to use")], temp: Annotated[float, typer.Option(help="Set a temperature between 0.0 and 1.0")] = 0.3):
         profile = UserProfile.current_profile()
         projects = [
             project for project in Projects(profile).get_all() 
@@ -134,7 +134,7 @@ class Project:
         # check for length
         if len(projects) > 0:
             profile['project'] = projects[0]
-            Projects(profile).set_config(dict(temparature=temp))
+            Projects(profile).set_config(dict(temperature=temp))
         else:
             console.print("No project found")
 

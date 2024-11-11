@@ -26,7 +26,7 @@ Once installed, check that everything is setup correctly:
 
 
 ## Setup
-First you will need to create a free [account](https://app.smartloop.ai/signup), verify and configure your account. Once verfied, copy your [developer token](https://app.smartloop.ai/developer) to the clipboard. You will need a invitation code as of writing this document, please reach out to us at `hello@smartloop.ai` and we should be able to get you started.
+First you will need to create a free [account](https://app.smartloop.ai/signup), verify and configure your account. Once verified, copy your [developer token](https://app.smartloop.ai/developer) to the clipboard. You will need a invitation code as of writing this document, please reach out to us at `hello@smartloop.ai` and we should be able to get you started.
 
 Once you have your token, run the following command in your terminal:
 
@@ -37,7 +37,7 @@ smartloop login
 This command will prompt you for your token, copy and pase the token that you have received in your email. Next step it to create a  project, you can do so with the following command:
 
 ```bash
-smartloop project create --name Lexic
+smartloop project create --name microsoft
 ```
 
 To get the project Id , use the following, the will also show you the currently selected project:
@@ -132,6 +132,7 @@ If you have any questions or suggestions, please feel free to reach out to hello
 
 * [Smartloop API Documentation](https://api.smartloop.ai/v1/redoc)
 * [Meta LLaMA](https://research.facebook.com/publications/llama-open-and-efficient-foundation-language-models/)
+* [LoRA](https://arxiv.org/abs/2106.09685)
 
 
 
