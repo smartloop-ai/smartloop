@@ -37,14 +37,15 @@ def select_project() -> dict:
 	
 	raise "No project has been created"
 
-@app.command(short_help="Login using a token from https://api.smartloop.ai/v1/redoc")
+@app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
 def login():
 	Art = text2art('smartloop.', font='small')
 	
 	console.print(Art)
-	console.print('You can generatate your token from /users/token endpoint')
+	console.print('Copy your token from the https://app.smartloop.ai/developer')
+	console.print('You will need to complete your authentication process to obtain / generate access token')
 
-	token  = getpass.getpass('Enter your token (Token will be invisitble): ')
+	token  = getpass.getpass('Paste your token (Token will be invisible): ')
 
 	user_profile = UserProfile.load()
 	user_profile[urlparse(endpoint).hostname] = dict(token=token)
@@ -54,7 +55,7 @@ def login():
 	try:
 		current_profile = UserProfile.current_profile()
 		Projects(current_profile).get_all()
-		console.print('[green]Successfuly logged in[/green]')
+		console.print('[green]Successfully logged in[/green]')
 		console.print('Next up explore [cyan]project[/cyan] or use [cyan]run[/cyan] to chat with a document')
 	except:
 		console.print('[red]Invalid login[/red]')
