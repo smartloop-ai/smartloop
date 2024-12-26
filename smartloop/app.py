@@ -39,10 +39,10 @@ def select_project() -> dict:
 
 @app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
 def login():
-	Art = text2art('smartloop.', font='small')
+	Art = text2art('smartloop.')
 	
 	console.print(Art)
-	console.print('Copy your token from the https://app.smartloop.ai/developer')
+	console.print('Please copy your access token using the link https://app.smartloop.ai/developer')
 	console.print('You will need to complete your authentication process to obtain / generate access token')
 
 	token  = getpass.getpass('Paste your token (Token will be invisible): ')
