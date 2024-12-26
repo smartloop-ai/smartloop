@@ -90,7 +90,7 @@ def chat_to_project(project_id: str):
 		# observe for responses
 		while True:
 			try:
-				url = posixpath.join(endpoint, project_id, 'messages', 'recent')
+				url = posixpath.join(endpoint, 'messages', uid, 'out')
 				
 				resp = requests.get(url,headers={'x-api-key': token})
 				resp.raise_for_status()
@@ -120,6 +120,17 @@ def chat_to_project(project_id: str):
 			except Exception as ex:
 				typer.echo(ex)
 
+def _current_project() -> dict:
+	try:
+		profile = UserProfile.current_profile()
+		# if logged in
+		if 'token' in profile.keys():
+			project =  profile['project']
+			return project
+	except Exception as ex:
+		console.print(ex)
+	
+	return dict()
 
 @app.command(short_help="Starts a chat session with a selected project")
 def run():
@@ -142,6 +153,14 @@ def run():
 			login()
 	except Exception as ex:
 		console.print(ex)
+
+@app.command(short_help="Upload document for the current project")
+def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
+	project = _current_project()
+	# check for project id
+	if 'id' in project:
+		Project.upload(project.get('id'), path)
+
 
 @app.command(short_help="Find out which account you are logged in")
 def whoami():

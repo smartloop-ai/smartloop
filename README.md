@@ -34,35 +34,16 @@ Once you have your token, run the following command in your terminal:
 smartloop login
 ```
 
+
+## Create a Project
+
 This command will prompt you for your token, copy and pase the token that you have received in your email. Next step it to create a  project, you can do so with the following command:
 
 ```bash
 smartloop project create --name microsoft
 ```
 
-To get the project Id , use the following, the will also show you the currently selected project:
-
-```bash
-smartloop project list
-```
-
-To delete a project, use:
-
-```bash
-smartloop project delete --id=project_id
-```
-
-## Upload Document
-
-Once the project is created , upload documents from your folder or a specific file, in this case I am uploading the a document describing Microsoft online services form my local machine
-
-```bash
-smartloop upload --id=<project_id> --path=~/document1.pdf
-```
-
-
-
-## Select a project
+## Select a Project
 
 Use the following command to interactively select a project:
 
@@ -71,15 +52,23 @@ Use the following command to interactively select a project:
 smartloop project select
 ```
 
+## Upload Document
+
+Once the project is selected , upload documents from your folder or a specific file, in this case I am uploading the a document describing Microsoft online services form my local machine:
+
+```bash
+smartloop upload --path=~/document1.pdf
+```
+
 ## Run It
 
-Finally, once project is selected, document you have uploaded and processed, run the CLI to prompt:
+Next step, once the project is selected, document(s) you have uploaded are processed, execute the following to start prompting:
 
 ```bash
 smartloop run
 ```
 
-This will bring up the prompt to query your information from your uploaded document
+This will bring up the prompt to query your information from your uploaded document(s)
 
 ```bash
 Current project: Microsoft(microsoft-24-07-2024)
@@ -110,12 +99,13 @@ smartloop project set --id=project_id --temp=0.3
 
 The higher value tends towards more creative answer
 
+
 ## Supported Documents types
 
 * PDF
 * DOCX
 * TXT
-* CSV (soon)
+* CSV
 
 
 ## Contributing

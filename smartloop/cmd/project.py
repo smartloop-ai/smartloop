@@ -153,7 +153,8 @@ class Project:
         else:
             console.print("No project found")
 
-    @app.command(short_help="Upload documents for a slected project")
+    @staticmethod
+    @app.command(short_help="Upload documents")
     def upload(id: Annotated[str, typer.Option(help="project Id to use")], 
                path: Annotated[str, typer.Option(help="folder or file path")]):
         profile = UserProfile.current_profile()
