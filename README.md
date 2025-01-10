@@ -95,6 +95,20 @@ smartloop project set --id=project_id --temp=0.3
 
 ```
 
+To enable memory to retain context in the conversation, use the following command:
+
+```bash 
+smartloop project set --id=project_id --memory
+
+```
+
+To disable, use the following command:
+
+```bash 
+smartloop project set --id=project_id --no-memory
+
+```
+
 `LLM temperature is a parameter that influences the language model's output, determining whether the output is more random and creative or more predictable.`
 
 The higher value tends towards more creative answer
