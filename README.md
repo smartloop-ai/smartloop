@@ -22,9 +22,12 @@ pip install -U smartloop
 ```
 Once installed, check that everything is setup correctly:
 
+
+
 ```console
+smartloop --help
                                                                                                                                                                      
- Usage: main.py [OPTIONS] COMMAND [ARGS]...                                                                                                                          
+ Usage: smartloop [OPTIONS] COMMAND [ARGS]...                                                                                                                          
                                                                                                                                                                      
 ╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ --install-completion          Install completion for the current shell.                                                                                           │
