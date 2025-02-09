@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 from smartloop.constants import endpoint, homedir
 
-from smartloop.cmd import Project
+from smartloop.cmd import Agent
 from smartloop.utils import UserProfile
 from smartloop.services import Projects
 
@@ -26,23 +26,23 @@ from smartloop import __version__
 console = Console()
 app = typer.Typer()
 
-app.add_typer(Project.app, name='project' , short_help= "Manage projects")
+app.add_typer(Agent.app, name='agent' , short_help= "Manage agent(s)")
 
 def select_project() -> dict:
 	profile = UserProfile.current_profile()
 	projects = Projects(profile).get_all()
 	# must have a project created earlier
 	if len(projects) > 0:
-		return Project.select()
+		return Agent.select()
 	
-	raise "No project has been created"
+	raise "No agent has been created"
 
 @app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
 def login():
 	Art = text2art('smartloop.')
 	
 	console.print(Art)
-	console.print('Please copy your access token using the link https://app.smartloop.ai/developer')
+	console.print('Please copy your access token using the link https://agent.smartloop.ai/developer')
 	console.print('You will need to complete your authentication process to obtain / generate access token')
 
 	token  = getpass.getpass('Paste your token (Token will be invisible): ')
@@ -56,12 +56,12 @@ def login():
 		current_profile = UserProfile.current_profile()
 		Projects(current_profile).get_all()
 		console.print('[green]Successfully logged in[/green]')
-		console.print('Next up explore [cyan]project[/cyan] or use [cyan]run[/cyan] to chat with a document')
+		console.print('Next up, create and [cyan]agent[/cyan] then use the [cyan]run[/cyan] command to start prompting')
 	except:
 		console.print('[red]Invalid login[/red]')
 
-def chat_to_project(project_id: str):
-	user_input = input('Enter message (Ctrl-C to exit): ')
+def chat_with_agent(project_id: str):
+	user_input = input('Enter prompt (Ctrl-C to exit):\n')
 	url = posixpath.join(endpoint, project_id, 'messages')
 
 	profile =  UserProfile.current_profile()
@@ -132,7 +132,7 @@ def _current_project() -> dict:
 	
 	return dict()
 
-@app.command(short_help="Starts a chat session with a selected project")
+@app.command(short_help="Starts a chat session with a selected agent")
 def run():
 	try:
 		profile = UserProfile.current_profile()
@@ -141,10 +141,15 @@ def run():
 			if 'project' in profile.keys():
 				project =  profile['project']
 
-				console.print(f"[green]Current project: [underline]{project.get('title')}({project['name']})[/green][/underline]")
+				display_name = f"{project.get('title')}({project['name']})"
+				dashes = "".join([ '-' for i in range(len(display_name))])
+
+				console.print(f"[cyan]{display_name}[/cyan]")
+				console.print(dashes)
+				
 				# chat till the cancelled
 				while True:
-					chat_to_project(project['id'])
+					chat_with_agent(project['id'])
 					time.sleep(1)
 			else:
 				select_project()
@@ -154,12 +159,12 @@ def run():
 	except Exception as ex:
 		console.print(ex)
 
-@app.command(short_help="Upload document for the current project")
+@app.command(short_help="Upload document for the selected agent")
 def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
 	project = _current_project()
 	# check for project id
 	if 'id' in project:
-		Project.upload(project.get('id'), path)
+		Agent.upload(project.get('id'), path)
 
 
 @app.command(short_help="Find out which account you are logged in")

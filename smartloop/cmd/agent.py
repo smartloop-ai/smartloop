@@ -25,10 +25,10 @@ from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 
 console = Console()
 
-class Project:
+class Agent:
     app = typer.Typer()
 
-    @app.command(short_help="Select a project")
+    @app.command(short_help="Select an agent")
     def select() -> dict:
         profile = UserProfile.current_profile()
         projects = Projects(profile).get_all()
@@ -39,7 +39,7 @@ class Project:
             projects_list = [
                 inquirer.List(
                     "project",
-                    message="Select a project from the options below",
+                    message="Select an agent from the options below",
                     choices=_projects,
                 ),
             ]

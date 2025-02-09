@@ -22,11 +22,33 @@ pip install -U smartloop
 ```
 Once installed, check that everything is setup correctly:
 
-![image](https://github.com/user-attachments/assets/0a4e0221-d2f7-4f87-9fb2-5e4ce7a23f62)
 
+
+```console
+smartloop --help
+                                                                                                                                                                     
+ Usage: smartloop [OPTIONS] COMMAND [ARGS]...                                                                                                                          
+                                                                                                                                                                     
+╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.                                                                                           │
+│ --show-completion             Show completion for the current shell, to copy it or customize the installation.                                                    │
+│ --help                        Show this message and exit.                                                                                                         │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ agent     Manage agent(s)                                                                                                                                         │
+│ login     Authenticate using a token from https://api.smartloop.ai/v1/redoc                                                                                       │
+│ run       Starts a chat session with a selected agent                                                                                                             │
+│ upload    Upload document for the selected agent                                                                                                                  │
+│ version   Version of the cli                                                                                                                                      │
+│ whoami    Find out which account you are logged in                                                                                                                │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+```
 
 ## Setup
-First you will need to create a free [account](https://app.smartloop.ai/signup), verify and configure your account. Once verified, copy your [developer token](https://app.smartloop.ai/developer) to the clipboard. You will need a invitation code as of writing this document, please reach out to us at `hello@smartloop.ai` and we should be able to get you started.
+First you will need to create a free [account](https://agent.smartloop.ai/signup), verify and configure your account. 
+Once verified, copy your [developer token](https://agent.smartloop.ai/developer) to the clipboard. If you have any problem setting up your account please reach out to us at `hello@smartloop.ai` and we should be able to get you started.
 
 Once you have your token, run the following command in your terminal:
 
@@ -34,27 +56,26 @@ Once you have your token, run the following command in your terminal:
 smartloop login
 ```
 
+## Create an Agent
 
-## Create a Project
-
-This command will prompt you for your token, copy and pase the token that you have received in your email. Next step it to create a  project, you can do so with the following command:
+Once you have configured the CLI , you can start creating agent using the following command:
 
 ```bash
-smartloop project create --name microsoft
+smartloop agent create --name microsoft
 ```
 
-## Select a Project
+## Select an Agent
 
-Use the following command to interactively select a project:
+Use the following command to interactively select an agent:
 
 
 ```bash
-smartloop project select
+smartloop agent select
 ```
 
 ## Upload Document
 
-Once the project is selected , upload documents from your folder or a specific file, in this case I am uploading the a document describing Microsoft online services form my local machine:
+Once the agent is selected , upload documents from your folder or a specific file to personalized your agent, in this case I am uploading the a document describing Microsoft online services form my local machine:
 
 ```bash
 smartloop upload --path=~/document1.pdf
@@ -62,17 +83,19 @@ smartloop upload --path=~/document1.pdf
 
 ## Run It
 
-Next step, once the project is selected, document(s) you have uploaded are processed, execute the following to start prompting:
+Execute the following command to start prompting:
 
 ```bash
 smartloop run
 ```
 
-This will bring up the prompt to query your information from your uploaded document(s)
+This will bring up the interface to prompt your queries as shown below:
 
 ```bash
-Current project: Microsoft(microsoft-24-07-2024)
-Enter message (Ctrl-C to exit): what the SLA for azure open ai
+Microsoft(microsoft-24-07-2024)
+======================================
+Enter prompt (Ctrl-C to exit): 
+what the SLA for azure open ai
 ⠋
 The SLA (Service Level Agreement) for Azure OpenAI is not explicitly mentioned in the provided text. However, it's possible that the SLA for Azure OpenAI might be similar to the one mentioned below:
 
@@ -85,27 +108,27 @@ The SLA (Service Level Agreement) for Azure OpenAI is not explicitly mentioned i
 
 Please note that this is not a direct quote from the provided text, but rather an inference based on the format and structure of the SLA mentioned for other Azure services (e.g., SAP HANA on Azure High Availability Pair). To confirm the actual SLA for Azure OpenAI, you should check the official Microsoft documentation or contact their support team.
 
-Enter message (Ctrl-C to exit):
+Prompt message (Ctrl-C to exit):
 ```
 
 In order to set `temperature` of your conversation, which ranges from 0.0 to 1.0, use the following command:
 
 ```bash 
-smartloop project set --id=project_id --temp=0.3
+smartloop agent set --id=project_id --temp=0.3
 
 ```
 
 To enable memory to retain context in the conversation, use the following command:
 
 ```bash 
-smartloop project set --id=project_id --memory
+smartloop agent set --id=project_id --memory
 
 ```
 
-To disable, use the following command:
+To disable memory, use the following command:
 
 ```bash 
-smartloop project set --id=project_id --no-memory
+smartloop agent set --id=project_id --no-memory
 
 ```
 
