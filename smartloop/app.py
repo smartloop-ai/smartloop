@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 from smartloop.constants import endpoint, homedir
 
-from smartloop.cmd import Agent
+from smartloop.cmd import Project
 from smartloop.utils import UserProfile
 from smartloop.services import Projects
 
@@ -26,28 +26,28 @@ from smartloop import __version__
 console = Console()
 app = typer.Typer()
 
-app.add_typer(Agent.app, name='agent' , short_help= "Manage agent(s)")
+app.add_typer(Project.app, name='project' , short_help= "Manage projects(s)")
 
 def select_project() -> dict:
 	profile = UserProfile.current_profile()
-	projects = Projects(profile).get_all()
+	projects = Project(profile).get_all()
 	# must have a project created earlier
 	if len(projects) > 0:
-		return Agent.select()
+		return Project.select()
 	
-	raise "No agent has been created"
+	raise "No project has been created"
 
 @app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
 def login():
 	Art = text2art('smartloop.')
 	
 	console.print(Art)
-	console.print('Please copy your access token using the link https://agent.smartloop.ai/developer')
+	console.print('Please copy your access token using the link https://dashboard.smartloop.ai/developer')
 	console.print('You will need to complete your authentication process to obtain / generate access token')
 
 	token  = getpass.getpass('Paste your token (Token will be invisible): ')
 
-	user_profile = UserProfile.load()
+	user_profile = UserProfile.load(generate=True)
 	user_profile[urlparse(endpoint).hostname] = dict(token=token)
 
 	UserProfile.save(user_profile)
@@ -56,7 +56,7 @@ def login():
 		current_profile = UserProfile.current_profile()
 		Projects(current_profile).get_all()
 		console.print('[green]Successfully logged in[/green]')
-		console.print('Next up, create and [cyan]agent[/cyan] then use the [cyan]run[/cyan] command to start prompting')
+		console.print('Next up, create and [cyan]project[/cyan] then use the [cyan]run[/cyan] command to start prompting')
 	except:
 		console.print('[red]Invalid login[/red]')
 
@@ -132,7 +132,7 @@ def _current_project() -> dict:
 	
 	return dict()
 
-@app.command(short_help="Starts a chat session with a selected agent")
+@app.command(short_help="Starts a chat session with a selected project")
 def run():
 	try:
 		profile = UserProfile.current_profile()
@@ -159,12 +159,12 @@ def run():
 	except Exception as ex:
 		console.print(ex)
 
-@app.command(short_help="Upload document for the selected agent")
+@app.command(short_help="Upload document for the selected project")
 def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
 	project = _current_project()
 	# check for project id
 	if 'id' in project:
-		Agent.upload(project.get('id'), path)
+		Project.upload(project.get('id'), path)
 
 
 @app.command(short_help="Find out which account you are logged in")

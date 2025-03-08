@@ -7,16 +7,16 @@ from smartloop.constants import endpoint
 
 class UserProfile:
     @staticmethod
-    def load() -> dict:
-        path = os.path.join(homedir, 'user.yaml')
-        try:
-            if os.path.exists(path):
-                with open(path, 'r') as infile:
-                    _yaml = yaml.safe_load(infile)
-                    return _yaml
-        except Exception as ex:
-            print(ex)
-
+    def load(generate=False) -> dict:
+        if not generate:
+            path = os.path.join(homedir, 'user.yaml')
+            try:
+                if os.path.exists(path):
+                    with open(path, 'r') as infile:
+                        _yaml = yaml.safe_load(infile)
+                        return _yaml
+            except Exception as ex:
+                print(ex)
         return dict()
     
     @staticmethod

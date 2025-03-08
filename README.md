@@ -35,11 +35,6 @@ smartloop --help
 │ --help                        Show this message and exit.                                                                                                         │
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ agent     Manage agent(s)                                                                                                                                         │
-│ login     Authenticate using a token from https://api.smartloop.ai/v1/redoc                                                                                       │
-│ run       Starts a chat session with a selected agent                                                                                                             │
-│ upload    Upload document for the selected agent                                                                                                                  │
-│ version   Version of the cli                                                                                                                                      │
 │ whoami    Find out which account you are logged in                                                                                                                │
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
@@ -47,8 +42,6 @@ smartloop --help
 ```
 
 ## Setup
-First you will need to create a free [account](https://agent.smartloop.ai/signup), verify and configure your account. 
-Once verified, copy your [developer token](https://agent.smartloop.ai/developer) to the clipboard. If you have any problem setting up your account please reach out to us at `hello@smartloop.ai` and we should be able to get you started.
 
 Once you have your token, run the following command in your terminal:
 
@@ -56,26 +49,26 @@ Once you have your token, run the following command in your terminal:
 smartloop login
 ```
 
-## Create an Agent
+## Create a Project
 
-Once you have configured the CLI , you can start creating agent using the following command:
+Once you have configured the CLI , you can start creating projects using the following command:
 
 ```bash
-smartloop agent create --name microsoft
+smartloop project create --name microsoft
 ```
 
-## Select an Agent
+## Select a Project
 
-Use the following command to interactively select an agent:
+Use the following command to interactively select a project:
 
 
 ```bash
-smartloop agent select
+smartloop project select
 ```
 
 ## Upload Document
 
-Once the agent is selected , upload documents from your folder or a specific file to personalized your agent, in this case I am uploading the a document describing Microsoft online services form my local machine:
+Once the project is selected , upload documents from your folder or a specific file to personalized your project, in this case I am uploading the a document describing Microsoft online services form my local machine:
 
 ```bash
 smartloop upload --path=~/document1.pdf
@@ -114,21 +107,17 @@ Prompt message (Ctrl-C to exit):
 In order to set `temperature` of your conversation, which ranges from 0.0 to 1.0, use the following command:
 
 ```bash 
-smartloop agent set --id=project_id --temp=0.3
-
 ```
 
 To enable memory to retain context in the conversation, use the following command:
 
 ```bash 
-smartloop agent set --id=project_id --memory
-
 ```
 
 To disable memory, use the following command:
 
 ```bash 
-smartloop agent set --id=project_id --no-memory
+smartloop project set --id=project_id --no-memory
 
 ```
 

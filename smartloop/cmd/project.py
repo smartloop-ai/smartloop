@@ -8,7 +8,7 @@ import http
 import time
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 from urllib.parse import urlparse
 
 from tabulate import tabulate
@@ -25,10 +25,10 @@ from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 
 console = Console()
 
-class Agent:
+class Project:
     app = typer.Typer()
 
-    @app.command(short_help="Select an agent")
+    @app.command(short_help="Select a project")
     def select() -> dict:
         profile = UserProfile.current_profile()
         projects = Projects(profile).get_all()
@@ -39,7 +39,7 @@ class Agent:
             projects_list = [
                 inquirer.List(
                     "project",
-                    message="Select an agent from the options below",
+                    message="Select an project from the options below",
                     choices=_projects,
                 ),
             ]
@@ -92,6 +92,20 @@ class Agent:
             resp = requests.put(url, headers={'x-api-key': profile['token']}, json=dict(title=name))
             resp.raise_for_status()
 
+            data = resp.json()
+
+            project_id = data['id']
+            projects = Projects(profile).get_all()
+            project = next(project for project in projects if project['id'] == project_id)
+
+            if project is not None:
+                profile['project'] = project
+            
+                user_profile = UserProfile.load()
+                user_profile[urlparse(endpoint).hostname] = profile
+                
+                UserProfile.save(user_profile)
+
             print("Project created successfully")
         except Exception as ex:
             print(ex)
@@ -103,7 +117,7 @@ class Agent:
         try:
             profile = UserProfile.current_profile()
             projects = [
-                project for project in Projects(profile).get_all() 
+                project for project in Project(profile).get_all() 
                 if project.get('id') == id
             ]
 
@@ -130,30 +144,47 @@ class Agent:
         memory: Annotated[bool, typer.Option(help="Set LLM memory to enable / disable conversation history")] = False):
         profile = UserProfile.current_profile()
         projects = [
-            project for project in Projects(profile).get_all() 
+            project for project in Project(profile).get_all() 
             if project.get('id') == id
         ]
         # check for length
         if len(projects) > 0:
             profile['project'] = projects[0]
-            Projects(profile).set_config(dict(temperature=temp, memory=memory))
+            Project(profile).set_config(dict(temperature=temp, memory=memory))
         else:
             console.print("No project found")
 
     @app.command(short_help="Delete a project")
-    def delete(id: Annotated[str, typer.Option(help="project Id to use")]):
+    def delete(name: Annotated[str, typer.Option(help="name of project")] = None, 
+               id: Annotated[str, typer.Option(help="Unique identifier of the project")] = None):
         profile = UserProfile.current_profile()
-        projects = [
-            project for project in Projects(profile).get_all() 
-            if project.get('id') == id
-        ]
-        # check for length
-        if len(projects) > 0:
-            profile['project'] = projects[0]
-            Projects(profile).delete()
-            console.print("Project deleted successfully")
-        else:
-            console.print("No project found")
+        
+        projects = []
+
+        try:
+            if name is None and id is None:
+                raise ValueError("You must provide either the name or id of the project to delete")
+           
+            if name is not None:
+                projects = [
+                    project for project in Projects(profile).get_all() 
+                    if project.get('title') == name
+                ]     
+            else:
+                projects = [
+                    project for project in Projects(profile).get_all() 
+                    if project.get('id') == id
+                ]
+
+            # check for length
+            if len(projects) > 0:
+                profile['project'] = projects[0]
+                Projects(profile).delete()
+                console.print("Project deleted successfully")
+            else:
+                console.print("No project found")
+        except ValueError as ve:
+            console.print(f"[red]{ve}[/red]")
 
     @staticmethod
     @app.command(short_help="Upload documents")
