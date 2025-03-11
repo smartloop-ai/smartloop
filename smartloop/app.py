@@ -40,7 +40,7 @@ def select_project() -> dict:
 @app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
 def login():
 	Art = text2art('smartloop.')
-	
+
 	console.print(Art)
 	console.print('Please copy your access token using the link https://dashboard.smartloop.ai/developer')
 	console.print('You will need to complete your authentication process to obtain / generate access token')
@@ -62,27 +62,28 @@ def login():
 
 def chat_with_agent(project_id: str):
 	user_input = input('Enter prompt (Ctrl-C to exit):\n')
-	url = posixpath.join(endpoint, project_id, 'messages')
+	url = posixpath.join(endpoint, 'projects', project_id, 'messages')
 
 	profile =  UserProfile.current_profile()
 	token = profile.get('token')
 
 	uid = str(uuid.uuid4())
-	
-	resp = requests.post(url, 
-					  json=dict(uid=uid,
+
+	resp = requests.post(url,
+					  json=dict(
+           				uid=uid,
 						text=user_input,
 						type='text'
 					),headers={
 						'x-api-key': token
 					})
 	resp.raise_for_status()
-
 	result = resp.json()
-	data = result.get('data', {})
-	uid = data.get('uid')
-	
-	timeout = 5*60 + time.time()
+
+	# Lookup the UID from the IN message so we can poll for the OUT message response
+	uid = result.get('uid')
+
+	timeout = 5 * 60 + time.time()
 
 	with Progress(SpinnerColumn()) as progress:
 		progress.add_task("thinking...")
@@ -90,32 +91,34 @@ def chat_with_agent(project_id: str):
 		# observe for responses
 		while True:
 			try:
-				url = posixpath.join(endpoint, 'messages', uid, 'out')
-				
-				resp = requests.get(url,headers={'x-api-key': token})
+				url = posixpath.join(endpoint, 'projects', project_id, 'messages', uid, 'out')
+
+				resp = requests.get(url, headers={'x-api-key': token})
 				resp.raise_for_status()
 				result = resp.json()
 
-				data = result.get('data', [])
-
 				found = False
 
-				for i in range(len(data)):
-					msg = data[i]
+				for i in range(len(result)):
+					msg = result[i]
+
 					direction = msg['direction']
-					payload = msg['payload']
-					_uid = payload['uid']
-				
+					_uid = msg['uid']
+
 					if direction == 'out' and _uid == uid:
 						progress.stop()
-						for char in payload['text']:
+
+						for char in msg['text']:
 							print(char, end='')
 							sys.stdout.flush()
 							time.sleep(.01)
+
 						typer.echo('\n')
 						found = True
+
 				if found or time.time() > timeout:
 					break
+
 				time.sleep(1)
 			except Exception as ex:
 				typer.echo(ex)
@@ -129,7 +132,7 @@ def _current_project() -> dict:
 			return project
 	except Exception as ex:
 		console.print(ex)
-	
+
 	return dict()
 
 @app.command(short_help="Starts a chat session with a selected project")
@@ -146,7 +149,7 @@ def run():
 
 				console.print(f"[cyan]{display_name}[/cyan]")
 				console.print(dashes)
-				
+
 				# chat till the cancelled
 				while True:
 					chat_with_agent(project['id'])
@@ -169,21 +172,19 @@ def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
 
 @app.command(short_help="Find out which account you are logged in")
 def whoami():
+
 	try:
 		profile = UserProfile.current_profile()
 		token = profile.get('token')
 
-		url = posixpath.join(endpoint, 'users')
-		
+		url = posixpath.join(endpoint, 'users', 'me')
+
 		resp = requests.get(url, headers={
 			'x-api-key': token
 		})
 		resp.raise_for_status()
 		resp = resp.json()
-		# check for data
-		if 'data' in resp:
-			data = resp['data']
-			console.print(f"{data.get('name')}")
+		console.print(f"{resp.get('name')}")
 	except Exception as ex:
 		console.print(f"[red]{ex}[/red]")
 
@@ -194,5 +195,5 @@ def version():
 def bootstrap():
 	if not os.path.isdir(homedir):
 		os.makedirs(homedir)
-	
+
 	app()
