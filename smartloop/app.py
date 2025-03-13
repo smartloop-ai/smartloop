@@ -17,23 +17,23 @@ from urllib.parse import urlparse
 
 from smartloop.constants import endpoint, homedir
 
-from smartloop.cmd import Project
+from smartloop.cmd import Projects
 from smartloop.utils import UserProfile
-from smartloop.services import Projects
+from smartloop import services
 
 from smartloop import __version__
 
 console = Console()
 app = typer.Typer()
 
-app.add_typer(Project.app, name='project' , short_help= "Manage projects(s)")
+app.add_typer(Projects.app, name='projects' , short_help= "Manage projects(s)")
 
 def select_project() -> dict:
 	profile = UserProfile.current_profile()
-	projects = Project(profile).get_all()
+	projects = services.Projects(profile).get_all()
 	# must have a project created earlier
 	if len(projects) > 0:
-		return Project.select()
+		return services.Projects.select()
 	
 	raise "No project has been created"
 
@@ -54,7 +54,7 @@ def login():
 
 	try:
 		current_profile = UserProfile.current_profile()
-		Projects(current_profile).get_all()
+		services.Projects(current_profile).get_all()
 		console.print('[green]Successfully logged in[/green]')
 		console.print('Next up, create and [cyan]project[/cyan] then use the [cyan]run[/cyan] command to start prompting')
 	except:
@@ -167,7 +167,7 @@ def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
 	project = _current_project()
 	# check for project id
 	if 'id' in project:
-		Project.upload(project.get('id'), path)
+		services.Projects.upload(project.get('id'), path)
 
 
 @app.command(short_help="Find out which account you are logged in")

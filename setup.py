@@ -22,7 +22,7 @@ setup(
     author_email='mehfuz@smartloop.ai',
     author='Smartloop Inc.',
     url='https://github.com/LexicHQ/smartloop',
-    keywords=['LLM', 'framework', 'llama3', 'phi3', 'platform', 'document'],
+    keywords=['LLM', 'framework', 'llama3', 'phi3', 'platform', 'document', 'gemma'],
     packages=find_packages(exclude=['tests*']),
     py_modules=['main', 'constants'],
     license='LICENSE.txt',

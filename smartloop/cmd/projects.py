@@ -16,7 +16,8 @@ from tabulate import tabulate
 import inquirer
 from inquirer.themes import GreenPassion
 
-from smartloop.services import Projects
+from smartloop import services
+
 from smartloop.constants import endpoint
 from smartloop.utils import UserProfile
 
@@ -25,13 +26,13 @@ from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 
 console = Console()
 
-class Project:
+class Projects:
     app = typer.Typer()
 
     @app.command(short_help="Select a project")
     def select() -> dict:
         profile = UserProfile.current_profile()
-        projects = Projects(profile).get_all()
+        projects = services.Projects(profile).get_all()
 
         _projects = [f"{proj['title']}({proj['name']})" for proj in projects]
 
@@ -73,7 +74,7 @@ class Project:
 
         print_project = lambda x :tabulate(x, headers=['current', 'id', 'title'])
 
-        projects = Projects(profile).get_all()
+        projects = services.Projects(profile).get_all()
 
         console.print(print_project([
             ['[*]' if project is not None and proj['id'] == project['id']else '[ ]',
@@ -95,7 +96,7 @@ class Project:
             data = resp.json()
 
             project_id = data['id']
-            projects = Projects(profile).get_all()
+            projects = services.Projects(profile).get_all()
             project = next(project for project in projects if project['id'] == project_id)
 
             if project is not None:
@@ -117,7 +118,7 @@ class Project:
         try:
             profile = UserProfile.current_profile()
             projects = [
-                project for project in Project(profile).get_all() 
+                project for project in services.Projects(profile).get_all() 
                 if project.get('id') == id
             ]
 
@@ -144,13 +145,13 @@ class Project:
         memory: Annotated[bool, typer.Option(help="Set LLM memory to enable / disable conversation history")] = False):
         profile = UserProfile.current_profile()
         projects = [
-            project for project in Project(profile).get_all() 
+            project for project in services.Projects(profile).get_all() 
             if project.get('id') == id
         ]
         # check for length
         if len(projects) > 0:
             profile['project'] = projects[0]
-            Project(profile).set_config(dict(temperature=temp, memory=memory))
+            services.Projects(profile).set_config(dict(temperature=temp, memory=memory))
         else:
             console.print("No project found")
 
@@ -167,7 +168,7 @@ class Project:
            
             if name is not None:
                 projects = [
-                    project for project in Projects(profile).get_all() 
+                    project for project in pj(profile).get_all() 
                     if project.get('title') == name
                 ]     
             else:
@@ -179,7 +180,7 @@ class Project:
             # check for length
             if len(projects) > 0:
                 profile['project'] = projects[0]
-                Projects(profile).delete()
+                pj(profile).delete()
                 console.print("Project deleted successfully")
             else:
                 console.print("No project found")
@@ -192,7 +193,7 @@ class Project:
                path: Annotated[str, typer.Option(help="folder or file path")]):
         profile = UserProfile.current_profile()
         projects = [
-            project for project in Projects(profile).get_all()
+            project for project in pj(profile).get_all()
             if project.get('id') == id
         ]
 
