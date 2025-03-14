@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 from smartloop.constants import endpoint, homedir
 
-from smartloop.cmd import Projects
+from smartloop.cmd.projects import Projects
 from smartloop.utils import UserProfile
 from smartloop import services
 
@@ -34,7 +34,7 @@ def select_project() -> dict:
 	# must have a project created earlier
 	if len(projects) > 0:
 		return services.Projects.select()
-	
+
 	raise "No project has been created"
 
 @app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
