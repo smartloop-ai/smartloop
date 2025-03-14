@@ -54,7 +54,7 @@ smartloop login
 Once you have configured the CLI , you can start creating projects using the following command:
 
 ```bash
-smartloop project create --name microsoft
+smartloop projects create --name microsoft
 ```
 
 ## Select a Project
@@ -63,7 +63,7 @@ Use the following command to interactively select a project:
 
 
 ```bash
-smartloop project select
+smartloop projects select
 ```
 
 ## Upload Document
@@ -117,7 +117,7 @@ To enable memory to retain context in the conversation, use the following comman
 To disable memory, use the following command:
 
 ```bash 
-smartloop project set --id=project_id --no-memory
+smartloop projects set --id=project_id --no-memory
 
 ```
 
