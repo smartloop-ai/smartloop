@@ -167,8 +167,7 @@ def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
 	project = _current_project()
 	# check for project id
 	if 'id' in project:
-		services.Projects.upload(project.get('id'), path)
-
+		Projects.upload(project.get('id'), path)
 
 @app.command(short_help="Find out which account you are logged in")
 def whoami():
