@@ -37,28 +37,61 @@ def select_project() -> dict:
 
 	raise "No project has been created"
 
-@app.command(short_help="Authenticate using a token from https://api.smartloop.ai/v1/redoc")
-def login():
+@app.command(short_help="Authenticate using your browser or a token")
+def login(
+    browser: Annotated[bool, typer.Option(help="Use browser-based authentication")] = True,
+    port: Annotated[int, typer.Option(help="Port to use for callback server")] = None
+):
 	Art = text2art('smartloop.')
-
 	console.print(Art)
-	console.print('Please copy your access token using the link https://dashboard.smartloop.ai/developer')
-	console.print('You will need to complete your authentication process to obtain / generate access token')
+	
+	if browser:
+		console.print('[cyan]Login Process[/cyan]')
+		console.print('1. A browser window will open to http://localhost:3000/login')
+		console.print('2. Complete the authentication in the browser')
+		console.print('3. The token will be automatically sent back to the CLI and saved\n')
+		
+		from smartloop.utils import perform_browser_login
+		
+		# Use the port parameter if provided, otherwise use environment or default
+		callback_port = port or int(os.getenv('SLP_CALLBACK_PORT', 5000))
+		console.print(f'Using callback port: [bold]{callback_port}[/bold]')
+		
+		with Progress(SpinnerColumn()) as progress:
+			task = progress.add_task("Waiting for authentication...")
+			progress.start()
+			success = perform_browser_login(callback_port=callback_port)
+			progress.stop()
+			
+		if success:
+			try:
+				current_profile = UserProfile.current_profile()
+				services.Projects(current_profile).get_all()
+				console.print('[green]Successfully logged in[/green]')
+				console.print('Next up, create a [cyan]project[/cyan] then use the [cyan]run[/cyan] command to start prompting')
+			except Exception as ex:
+				console.print(f'[red]Error verifying login: {str(ex)}[/red]')
+		else:
+			console.print('[red]Authentication failed or was canceled[/red]')
+	else:
+		# Traditional token-based login
+		console.print('Please copy your access token using the link https://dashboard.smartloop.ai/developer')
+		console.print('You will need to complete your authentication process to obtain / generate access token')
 
-	token  = getpass.getpass('Paste your token (Token will be invisible): ')
+		token = getpass.getpass('Paste your token (Token will be invisible): ')
 
-	user_profile = UserProfile.load(generate=True)
-	user_profile[urlparse(endpoint).hostname] = dict(token=token)
+		user_profile = UserProfile.load(generate=True)
+		user_profile[urlparse(endpoint).hostname] = dict(token=token)
 
-	UserProfile.save(user_profile)
+		UserProfile.save(user_profile)
 
-	try:
-		current_profile = UserProfile.current_profile()
-		services.Projects(current_profile).get_all()
-		console.print('[green]Successfully logged in[/green]')
-		console.print('Next up, create and [cyan]project[/cyan] then use the [cyan]run[/cyan] command to start prompting')
-	except:
-		console.print('[red]Invalid login[/red]')
+		try:
+			current_profile = UserProfile.current_profile()
+			services.Projects(current_profile).get_all()
+			console.print('[green]Successfully logged in[/green]')
+			console.print('Next up, create a [cyan]project[/cyan] then use the [cyan]run[/cyan] command to start prompting')
+		except Exception as ex:
+			console.print(f'[red]Invalid login: {str(ex)}[/red]')
 
 def chat_with_agent(project_id: str):
 	user_input = input('Enter prompt (Ctrl-C to exit):\n')
