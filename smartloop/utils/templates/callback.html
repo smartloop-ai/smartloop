@@ -107,22 +107,7 @@
                 <span class="success">> You have successfully authenticated with Smartloop CLI.</span><br>
                 <span style="color: #aaaaaa; font-size: 0.85rem;">> Your access token has been saved securely.</span><br>
                 <span style="color: #aaaaaa; font-size: 0.85rem;">> You may close this window and return to your terminal.</span>
-            </div>
-            <script>
-                (async function() {
-                    // Signal successful authentication to server in the background
-                    try {
-                        // Notify the server silently
-                        await fetch('/success', { 
-                            method: 'GET',
-                            // Use a short timeout to avoid waiting too long
-                            signal: AbortSignal.timeout(500)
-                        }).catch(() => {});
-                    } catch (e) {
-                        // Silently handle any errors
-                    }
-                })();
-            </script>
+            </div>   
         {% else %}
             <div class="code-message">
                 <div class="code-header">error</div>
