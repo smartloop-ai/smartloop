@@ -1,10 +1,10 @@
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import setup, find_packages
+from smartloop import __version__
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
-
-from smartloop import __version__
 
 install_requires = [
     'PyYAML==6.0.1',
@@ -25,6 +25,9 @@ setup(
     url='https://github.com/LexicHQ/smartloop',
     keywords=['LLM', 'framework', 'llama3', 'phi3', 'platform', 'document', 'gemma'],
     packages=find_packages(exclude=['tests*']),
+    package_data={
+        'smartloop.utils': ['templates/*.html'],
+    },
     py_modules=['main', 'constants'],
     license='LICENSE.txt',
     install_requires=install_requires,
@@ -32,7 +35,6 @@ setup(
     long_description_content_type='text/markdown',
     classifiers=[
         'Development Status :: 4 - Beta',
-        # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
         'Intended Audience :: Developers',  # Define that your audience are developers
         "Topic :: Software Development :: Libraries",
         'License :: OSI Approved :: MIT License',  # Again, pick a license
