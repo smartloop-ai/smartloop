@@ -12,7 +12,8 @@ install_requires = [
     'typer==0.12.3',
     'art==6.2',
     'inquirer==3.3.0',
-    'tabulate==0.9.0'
+    'tabulate==0.9.0',
+    'flask>=3.0.0'
 ]
 
 setup(
