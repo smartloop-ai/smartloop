@@ -4,6 +4,7 @@ import time
 import webbrowser
 import threading
 import uuid
+import logging
 from urllib.parse import urlparse, parse_qs
 import requests
 from pathlib import Path
@@ -12,6 +13,9 @@ from flask import Flask, request, render_template
 
 from smartloop.constants import endpoint, auth_server
 from smartloop.utils.user_profile import UserProfile
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)  # Hides most warnings
 
 class BrowserLogin:
     def __init__(self, port=5000):

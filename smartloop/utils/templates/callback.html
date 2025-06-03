@@ -24,7 +24,6 @@
         }
         .container {
             background-color: #252525;
-            border-radius: 8px;
             padding: 30px;
             margin: 60px auto;
             max-width: 500px;
@@ -65,7 +64,6 @@
         .logo {
             width: 180px;
             height: auto;
-            margin-bottom: 24px;
             filter: brightness(0) invert(1); /* Make sure SVG logo is white on dark background */
         }
         .success {
@@ -99,7 +97,7 @@
 <body>
     <div class="container">
         <img src="https://app.smartloop.ai/img/logo.svg" alt="Smartloop" class="logo">
-        <h1>{% if success %}Authentication Successful! 🎉{% else %}Authentication Error{% endif %}</h1>
+        <h1 style="font-weight: 300;">{% if success %}Authentication Successful! 🎉{% else %}Authentication Failed{% endif %}</h1>
         
         {% if success %}
             <div class="code-message">
