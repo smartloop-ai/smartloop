@@ -15,7 +15,7 @@ from signal import signal, SIGINT
 from art import text2art
 from urllib.parse import urlparse
 
-from smartloop.constants import endpoint, homedir
+from smartloop.constants import endpoint, homedir, auth_server
 
 from smartloop.cmd.projects import Projects
 from smartloop.utils import UserProfile
@@ -47,7 +47,7 @@ def login(
 	
 	if browser:
 		console.print('[cyan]Login Process[/cyan]')
-		console.print('1. A browser window will open to http://localhost:3000/login')
+		console.print(f"1. A browser window will open to {auth_server}/login")
 		console.print('2. Complete the authentication in the browser')
 		console.print('3. The token will be automatically sent back to the CLI and saved\n')
 		
