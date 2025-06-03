@@ -43,10 +43,18 @@ smartloop --help
 
 ## Setup
 
-Once you have your token, run the following command in your terminal:
+To authenticate with the Smartloop Platform, run the following command in your terminal:
 
 ```bash
 smartloop login
+```
+
+This will open a browser window to https://app.smartloop.ai/login where you can complete the authentication process. After login, you'll be redirected back to the CLI with an authorization code that will be exchanged for a token, which will be automatically saved for future use.
+
+If you prefer to use a manual token input, you can use:
+
+```bash
+smartloop login --no-browser
 ```
 
 ## Create a Project
