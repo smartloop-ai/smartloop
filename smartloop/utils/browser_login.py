@@ -3,6 +3,7 @@ import time
 import webbrowser
 import threading
 import uuid
+import socket
 import logging
 from urllib.parse import urlparse
 import requests
@@ -14,6 +15,8 @@ from smartloop.utils.user_profile import UserProfile
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)  # Hides most warnings
+
+client_id = os.getenv('SLP_CLIENT_ID', f"smartloop-on-{socket.gethostname()}")
 
 class BrowserLogin:
     '''Class to handle browser-based login for SmartLoop CLI.'''
@@ -113,7 +116,7 @@ class BrowserLogin:
                 'grant_type': 'authorization_code',
                 'code': code,
                 'redirect_uri': self.redirect_uri,
-                'client_id': os.getenv('SLP_CLIENT_ID', 'smartloop-cli')
+                'client_id': client_id
             }
         )
 
@@ -149,7 +152,6 @@ class BrowserLogin:
         """Open the browser for the user to authenticate."""
         # Construct the authorization URL pointing to /login
         auth_url = f"{auth_server}/login"
-        client_id = os.getenv('SLP_CLIENT_ID', 'smartloop-cli')
         full_auth_url = f"{auth_url}?response_type=code&redirect_uri={self.redirect_uri}&state={self.state}&client_id={client_id}"
         # Open the authorization URL in the user's default browser
         webbrowser.open(full_auth_url)
@@ -165,7 +167,6 @@ def perform_browser_login(callback_port=5000, timeout=120):
     login_handler.start_server()
     login_handler.open_login_page()
 
-    client_id = os.getenv('SLP_CLIENT_ID', 'smartloop-cli')
     print("A browser window has been opened for you to complete the login process.")
     print("If it doesn't open automatically, please go to the following URL:")
     print(f"{auth_server}/login?response_type=code&redirect_uri=http://localhost:{login_handler.port}/callback&state={login_handler.state}&client_id={client_id}")
