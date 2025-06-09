@@ -24,7 +24,24 @@ from smartloop import services
 from smartloop import __version__
 
 console = Console()
+
+def version_callback(value: bool):
+	"""Callback for --version flag"""
+	if value:
+		console.print(f"Version: {__version__}")
+		raise typer.Exit()
+
 app = typer.Typer()
+
+# Add global --version flag
+@app.callback()
+def main(
+	version: Annotated[bool, typer.Option("--version", callback=version_callback, help="Show version and exit")] = False,
+):
+	"""
+	SmartLoop CLI - Upload, manage, and query documents with fine-tuned LLM models.
+	"""
+	pass
 
 app.add_typer(Projects.app, name='projects' , short_help= "Manage projects(s)")
 
@@ -249,9 +266,7 @@ def whoami():
 	except Exception as ex:
 		console.print(f"[red]{ex}[/red]")
 
-@app.command(short_help="Version of the cli")
-def version():
-	console.print(f"Version: {__version__}")
+
 
 def bootstrap():
 	if not os.path.isdir(homedir):
