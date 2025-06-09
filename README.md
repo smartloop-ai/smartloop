@@ -90,6 +90,24 @@ Execute the following command to start prompting:
 smartloop run
 ```
 
+This will start a chat session with your currently selected project. If no project is currently selected, you'll be prompted to choose one interactively.
+
+### Run with a Specific Project
+
+You can also run a chat session directly with a specific project by providing its ID:
+
+```bash
+smartloop run --project-id your-project-id
+```
+
+This bypasses the need to first select a project and directly starts the chat session with the specified project.
+
+To find your project ID, you can list all your projects:
+
+```bash
+smartloop projects list
+```
+
 This will bring up the interface to prompt your queries as shown below:
 
 ```bash
