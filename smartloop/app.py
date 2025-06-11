@@ -24,7 +24,24 @@ from smartloop import services
 from smartloop import __version__
 
 console = Console()
+
+def version_callback(value: bool):
+	"""Callback for --version flag"""
+	if value:
+		console.print(f"Version: {__version__}")
+		raise typer.Exit()
+
 app = typer.Typer()
+
+# Add global --version flag
+@app.callback()
+def main(
+	version: Annotated[bool, typer.Option("--version", callback=version_callback, help="Show version and exit")] = False,
+):
+	"""
+	SmartLoop CLI - Upload, manage, and query documents with fine-tuned LLM models.
+	"""
+	pass
 
 app.add_typer(Projects.app, name='projects' , short_help= "Manage projects(s)")
 
@@ -33,9 +50,33 @@ def select_project() -> dict:
 	projects = services.Projects(profile).get_all()
 	# must have a project created earlier
 	if len(projects) > 0:
-		return services.Projects.select()
+		return Projects.select()
 
-	raise "No project has been created"
+	raise Exception("No project has been created")
+
+def get_project_by_id(project_id: str) -> dict:
+	"""Get a project by its ID and set it as the current project."""
+	profile = UserProfile.current_profile()
+	projects = services.Projects(profile).get_all()
+	
+	# Find the project with the given ID
+	matching_projects = [project for project in projects if project.get('id') == project_id]
+	
+	if len(matching_projects) == 0:
+		raise Exception(f"No project found with ID: {project_id}")
+	
+	selected_project = matching_projects[0]
+	
+	# Set this project as the current project in the profile
+	profile['project'] = selected_project
+	
+	user_profile = UserProfile.load()
+	user_profile[urlparse(endpoint).hostname] = profile
+	UserProfile.save(user_profile)
+	
+	console.print(f"Selected project: [underline]{selected_project['title']}({selected_project['name']})[/underline]")
+	
+	return selected_project
 
 @app.command(short_help="Authenticate using your browser or a token")
 def login(
@@ -95,6 +136,7 @@ def login(
 
 def chat_with_agent(project_id: str):
 	user_input = input('Enter prompt (Ctrl-C to exit):\n')
+
 	url = posixpath.join(endpoint, 'projects', project_id, 'messages')
 
 	profile =  UserProfile.current_profile()
@@ -169,31 +211,35 @@ def _current_project() -> dict:
 	return dict()
 
 @app.command(short_help="Starts a chat session with a selected project")
-def run():
+def run(project_id: Annotated[str, typer.Option("--project-id", help="Project ID to use for the chat session")] = None):
 	try:
 		profile = UserProfile.current_profile()
 		# check if logged in
 		if 'token' in profile.keys():
-			if 'project' in profile.keys():
-				project =  profile['project']
-
+			project = None
+			
+			# If project_id is provided, use that project
+			if project_id:
+				project = get_project_by_id(project_id)
+			else:
+				# No project selected, prompt user to select one
+				project = select_project()
+			
+			if project:
 				display_name = f"{project.get('title')}({project['name']})"
-				dashes = "".join([ '-' for i in range(len(display_name))])
+				dashes = "".join(['-' for i in range(len(display_name))])
 
 				console.print(f"[cyan]{display_name}[/cyan]")
 				console.print(dashes)
 
-				# chat till the cancelled
+				# chat till cancelled
 				while True:
 					chat_with_agent(project['id'])
 					time.sleep(1)
-			else:
-				select_project()
-				run()
 		else:
 			login()
 	except Exception as ex:
-		console.print(ex)
+		console.print(f"[red]{ex}[/red]")
 
 @app.command(short_help="Upload document for the selected project")
 def upload(path: Annotated[str, typer.Option(help="folder or file path")]):
@@ -220,9 +266,7 @@ def whoami():
 	except Exception as ex:
 		console.print(f"[red]{ex}[/red]")
 
-@app.command(short_help="Version of the cli")
-def version():
-	console.print(f"Version: {__version__}")
+
 
 def bootstrap():
 	if not os.path.isdir(homedir):
