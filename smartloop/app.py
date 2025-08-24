@@ -87,45 +87,6 @@ def get_project_by_id(project_id: str) -> dict:
 	
 	return selected_project
 
-def resize_image(image, new_width=100):
-    """Resizes an image while maintaining the aspect ratio."""
-    width, height = image.size
-    aspect_ratio = height / width / 1.65  # Correct for character aspect ratio
-    new_height = int(new_width * aspect_ratio)
-    return image.resize((new_width, new_height))
-
-def pixels_to_ascii(image, chars):
-    """Converts a grayscale image's pixels to ASCII characters."""
-    pixels = image.getdata()
-    # Map pixel values (0-255) to a character in the ASCII set
-    ascii_str = "".join([chars[pixel * len(chars) // 256] for pixel in pixels])
-    return ascii_str
-
-
-def image_to_ascii(image_path, new_width=100):
-    """Converts an image file to ASCII art and prints it."""
-    try:
-        image = Image.open(image_path)
-    except FileNotFoundError:
-        print(f"Error: The file '{image_path}' was not found.")
-        return
-
-    # Define a character set for brightness mapping (light to dark)
-    ASCII_CHARS = ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ',', '.']
-    
-    # Process the image
-    image = resize_image(image, new_width=new_width)
-    grayscale_image = image.convert("L")  # Convert to grayscale
-    ascii_str = pixels_to_ascii(grayscale_image, ASCII_CHARS)
-
-    # Format the string with newlines
-    img_width = grayscale_image.width
-    ascii_art = ""
-    for i in range(0, len(ascii_str), img_width):
-        ascii_art += ascii_str[i:i + img_width] + "\n"
-    
-    print(ascii_art)
-
 @app.command(short_help="Authenticate using your browser or a token")
 def login():
 	console.print()
