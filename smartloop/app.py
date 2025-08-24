@@ -1,4 +1,3 @@
-from email.mime import image
 import sys
 from typing import Annotated
 import requests
@@ -14,25 +13,16 @@ from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 from rich.console import Console
 from signal import signal, SIGINT
 import pyfiglet
-from art import text2art
 from urllib.parse import urlparse
 
-from PIL import Image
-from term_image.image import AutoImage
-
 from smartloop.constants import endpoint, homedir, auth_server
-
 from smartloop.cmd.projects import Projects
 from smartloop.utils import UserProfile
 from smartloop import services
 
 from smartloop import __version__
 
-# Example ASCII character set (from light to dark)
-ASCII_CHARS = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"]
-
 console = Console()
-
 
 def version_callback(value: bool):
 	"""Callback for --version flag"""
