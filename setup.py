@@ -10,20 +10,19 @@ install_requires = [
     'PyYAML==6.0.1',
     'requests==2.32.3',
     'typer==0.12.3',
-    'art==6.2',
     'inquirer==3.3.0',
     'tabulate==0.9.0',
-    'flask>=3.0.0'
+    'pyfiglet==1.0.4'
 ]
 
 setup(
     name='smartloop',
     description='Smartloop Command Line interface to process documents using LLM',
     version=__version__,
-    author_email='mehfuz@smartloop.ai',
+    author_email='hello@smartloop.ai',
     author='Smartloop Inc.',
     url='https://github.com/LexicHQ/smartloop',
-    keywords=['LLM', 'framework', 'llama3', 'phi3', 'platform', 'document', 'gemma'],
+    keywords=['LLM', 'framework', 'fine-tuning', 'platform', 'document-processing', 'ai'],
     packages=find_packages(exclude=['tests*']),
     package_data={
         'smartloop.utils': ['templates/*.html'],
