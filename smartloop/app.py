@@ -423,12 +423,13 @@ def whoami():
 		})
 		resp.raise_for_status()
 		resp = resp.json()
-		console.print(f"{resp.get('name')}")
+		console.print(f"{resp.get('name')}[green] ({resp.get('email')}[/green])")
 	except Exception as ex:
 		console.print(f"[red]{ex}[/red]")
 
 def bootstrap():
 	if not os.path.isdir(homedir):
 		os.makedirs(homedir)
+
 
 	app()
