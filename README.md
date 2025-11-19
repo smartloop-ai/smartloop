@@ -1,7 +1,4 @@
-
-<img width="810" height="312" alt="cover-github 1" src="https://github.com/user-attachments/assets/21867ca2-2483-446e-bf9d-121d4fa86dd7" />
-
-<br/>
+## Smartloop - A open source platform to fine-tune and inference Foundational Model
 
 Use the CLI to upload, manage, and query documents based on fine-tuned LLM models. It uses the smartloop API to manage projects and documents and gives you an easy way to quickly process contents and reason based on it.
 
