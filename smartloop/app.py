@@ -76,30 +76,30 @@ def get_editable_input() -> str:
 		"  - Press Ctrl+C or Ctrl+D to cancel[/dim]\n"
 	)
 	console.print(instructions)
-	
+
 	# Create custom key bindings
 	kb = KeyBindings()
-	
+
 	@kb.add('escape', 'enter')
 	def _(event):
 		"""Accept input on Alt+Enter (escape sequence)"""
 		event.current_buffer.validate_and_handle()
-	
+
 	@kb.add(Keys.Enter)
 	def _(event):
 		"""Insert newline on plain Enter"""
 		event.current_buffer.insert_text('\n')
-	
+
 	@kb.add('c-c')
 	def _(event):
 		"""Exit on Ctrl+C"""
 		event.app.exit(exception=KeyboardInterrupt)
-	
+
 	@kb.add('c-d')
 	def _(event):
 		"""Exit on Ctrl+D"""
 		event.app.exit(exception=EOFError)
-	
+
 	try:
 		# Get multiline input with custom key bindings
 		user_input = prompt(
@@ -108,11 +108,11 @@ def get_editable_input() -> str:
 			key_bindings=kb,
 			prompt_continuation=lambda width, line_number, is_soft_wrap: '  '
 		).strip()
-		
+
 		if not user_input:
 			console.print("[yellow]Prompt cancelled or empty. Skipping.[/yellow]")
 			return ""
-		
+
 		# Check for special commands
 		if user_input.startswith(':load'):
 			# Load file content
@@ -129,7 +129,7 @@ def get_editable_input() -> str:
 			else:
 				console.print("[yellow]Usage: :load <filepath>[/yellow]")
 				return ""
-		
+
 		if user_input.strip() == ':edit':
 			# Open in editor
 			edited_content = open_in_editor("")
@@ -139,9 +139,9 @@ def get_editable_input() -> str:
 			else:
 				console.print("[yellow]No content from editor[/yellow]")
 				return ""
-		
+
 		return user_input
-	
+
 	except KeyboardInterrupt:
 		raise  # Re-raise to exit the entire chat session
 	except EOFError:
@@ -154,7 +154,7 @@ def open_in_editor(initial_content: str = "") -> str:
 	"""
 	# Create a temporary file
 	fd, temp_path = tempfile.mkstemp(suffix='.txt', text=True, prefix='smartloop_prompt_')
-	
+
 	try:
 		# Write initial content
 		with os.fdopen(fd, 'w') as f:
@@ -162,10 +162,10 @@ def open_in_editor(initial_content: str = "") -> str:
 			f.write("# Lines starting with # are ignored and removed\n\n")
 			if initial_content:
 				f.write(initial_content)
-		
+
 		# Determine which editor to use
 		editor = os.environ.get('EDITOR', 'nano')
-		
+
 		# Try to use different editors in order of preference
 		editor_found = False
 		for editor_name in [editor, 'nano', 'vim', 'vi', 'gedit', 'code']:
@@ -179,15 +179,15 @@ def open_in_editor(initial_content: str = "") -> str:
 				break
 			except (subprocess.CalledProcessError, FileNotFoundError):
 				continue
-		
+
 		if not editor_found:
 			console.print("[red]No suitable editor found. Please install nano, vim, or set the EDITOR environment variable.[/red]")
 			return None
-		
+
 		# Read the file content
 		with open(temp_path, 'r') as f:
 			content = f.read()
-		
+
 		# Filter out comment lines and get the actual prompt
 		lines = content.split('\n')
 		prompt_lines = []
@@ -195,10 +195,10 @@ def open_in_editor(initial_content: str = "") -> str:
 			# Skip empty lines and comment lines
 			if line.strip() and not line.strip().startswith('#'):
 				prompt_lines.append(line)
-		
+
 		result = '\n'.join(prompt_lines)
 		return result if result else None
-	
+
 	finally:
 		# Clean up the temporary file
 		try:
@@ -219,30 +219,30 @@ def get_project_by_id(project_id: str) -> dict:
 	"""Get a project by its ID and set it as the current project."""
 	profile = UserProfile.current_profile()
 	projects = services.Projects(profile).get_all()
-	
+
 	# Find the project with the given ID
 	matching_projects = [project for project in projects if project.get('id') == project_id]
-	
+
 	if len(matching_projects) == 0:
 		raise Exception(f"No project found with ID: {project_id}")
-	
+
 	selected_project = matching_projects[0]
-	
+
 	# Set this project as the current project in the profile
 	profile['project'] = selected_project
-	
+
 	user_profile = UserProfile.load()
 	user_profile[urlparse(endpoint).hostname] = profile
 	UserProfile.save(user_profile)
-	
+
 	console.print(f"Selected project: [underline]{selected_project['title']}({selected_project['name']})[/underline]")
-	
+
 	return selected_project
 
 @app.command(short_help="Authenticate using your browser or a token")
 def login():
 	console.print()
-	
+
 	print(pyfiglet.figlet_format("smartloop.", font="doom"))
 
 	console.print(':clipboard: Please copy your access token using the link [blue]https://app.smartloop.ai/developer[/blue]. You will need to complete your authentication process to obtain / generate access token.')
@@ -266,7 +266,7 @@ def login():
 
 def chat_with_agent(project_id: str):
 	user_input = get_editable_input().strip()
-	
+
 	# Skip empty prompts
 	if not user_input:
 		return
@@ -308,18 +308,18 @@ def chat_with_agent(project_id: str):
 			for line in resp.iter_lines():
 				if line:
 					line_text = line.decode('utf-8')
-					
+
 					# Handle Server-Sent Events format
 					if line_text.startswith('data: '):
 						data_text = line_text[6:]  # Remove 'data: ' prefix
-						
+
 						# Check for end of stream
 						if data_text.strip() == '[END]':
 							break
-						
+
 						try:
 							chunk_data = json.loads(data_text)
-							
+
 							# Extract content from the chunk
 							if 'choices' in chunk_data and len(chunk_data['choices']) > 0:
 								chunk_content = chunk_data['choices'][0].get('delta', {}).get('content', '')
@@ -348,6 +348,34 @@ def chat_with_agent(project_id: str):
 
 		print('\n')  # Add newline at the end
 
+	except requests.exceptions.HTTPError as http_err:
+		# Handle 429 credit limit errors specifically
+		if http_err.response.status_code == 429:
+			try:
+				error_data = http_err.response.json()
+				detail = error_data.get('detail', {})
+
+				# Check if detail is a dict (as shown in the API response format)
+				if isinstance(detail, dict):
+					message = detail.get('detail', 'Credit limit exceeded.')
+					subscription_url = detail.get('subscription_url', '')
+				else:
+					# Fallback if detail is just a string
+					message = str(detail)
+					subscription_url = ''
+
+				# Print the credit limit message
+				console.print(f'\n[yellow]{message}[/yellow]')
+
+				# Display the subscription URL if available
+				if subscription_url:
+					console.print(f'[cyan]Update your subscription: [link={subscription_url}]{subscription_url}[/link][/cyan]')
+			except (json.JSONDecodeError, KeyError, AttributeError):
+				# Fallback if response format is unexpected
+				console.print(f'[red]Credit limit exceeded. Please check your subscription.[/red]')
+		else:
+			# Handle other HTTP errors
+			console.print(f'[red]HTTP Error: {str(http_err)}[/red]')
 	except Exception as ex:
 		console.print(f'[red]Error: {str(ex)}[/red]')
 
@@ -370,14 +398,14 @@ def run(project_id: Annotated[str, typer.Option("--project-id", help="Project ID
 		# check if logged in
 		if 'token' in profile.keys():
 			project = None
-			
+
 			# If project_id is provided, use that project
 			if project_id:
 				project = get_project_by_id(project_id)
 			else:
 				# No project selected, prompt user to select one
 				project = select_project()
-			
+
 			if project:
 				display_name = f"{project.get('title')}({project['name']})"
 				dashes = "".join(['-' for i in range(len(display_name))])
