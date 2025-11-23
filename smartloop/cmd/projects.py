@@ -40,7 +40,7 @@ class Projects:
             projects_list = [
                 inquirer.List(
                     "project",
-                    message="Select an project from the options below",
+                    message="Select a project from the options below",
                     choices=_projects,
                 ),
             ]
@@ -101,10 +101,10 @@ class Projects:
 
             if project is not None:
                 profile['project'] = project
-            
+
                 user_profile = UserProfile.load()
                 user_profile[urlparse(endpoint).hostname] = profile
-                
+
                 UserProfile.save(user_profile)
 
             print("Project created successfully")
@@ -118,7 +118,7 @@ class Projects:
         try:
             profile = UserProfile.current_profile()
             projects = [
-                project for project in services.Projects(profile).get_all() 
+                project for project in services.Projects(profile).get_all()
                 if project.get('id') == id
             ]
 
@@ -145,7 +145,7 @@ class Projects:
         memory: Annotated[bool, typer.Option(help="Set LLM memory to enable / disable conversation history")] = False):
         profile = UserProfile.current_profile()
         projects = [
-            project for project in services.Projects(profile).get_all() 
+            project for project in services.Projects(profile).get_all()
             if project.get('id') == id
         ]
         # check for length
@@ -156,24 +156,24 @@ class Projects:
             console.print("No project found")
 
     @app.command(short_help="Delete a project")
-    def delete(name: Annotated[str, typer.Option(help="name of project")] = None, 
+    def delete(name: Annotated[str, typer.Option(help="name of project")] = None,
                id: Annotated[str, typer.Option(help="Unique identifier of the project")] = None):
         profile = UserProfile.current_profile()
-        
+
         projects = []
 
         try:
             if name is None and id is None:
                 raise ValueError("You must provide either the name or id of the project to delete")
-           
+
             if name is not None:
                 projects = [
-                    project for project in services.Projects(profile).get_all() 
+                    project for project in services.Projects(profile).get_all()
                     if project.get('title') == name
-                ]     
+                ]
             else:
                 projects = [
-                    project for project in services.Projects(profile).get_all() 
+                    project for project in services.Projects(profile).get_all()
                     if project.get('id') == id
                 ]
 
@@ -234,9 +234,37 @@ class Projects:
                         })
 
                         # handled error
-                        if resp.status_code not in [http.HTTPStatus.CREATED, http.HTTPStatus.OK]:
+                        if resp.status_code == 429:
                             progress.stop()
-                            console.print(f"[red]{resp.json()['detail']}[/red]")
+                            try:
+                                error_data = resp.json()
+                                detail = error_data.get('detail', {})
+
+                                # Check if detail is a dict (as shown in the API response format)
+                                if isinstance(detail, dict):
+                                    message = detail.get('detail', 'Credit limit exceeded.')
+                                    subscription_url = detail.get('subscription_url', '')
+                                else:
+                                    # Fallback if detail is just a string
+                                    message = str(detail)
+                                    subscription_url = ''
+
+                                # Print the credit limit message
+                                console.print(f"[yellow]{message}[/yellow]")
+
+                                # Display the subscription URL if available
+                                if subscription_url:
+                                    console.print(f'[cyan]Update your subscription: [link={subscription_url}]{subscription_url}[/link][/cyan]')
+                            except Exception:
+                                console.print(f"[red]Credit limit exceeded. Please check your subscription.[/red]")
+                            return
+                        elif resp.status_code not in [http.HTTPStatus.CREATED, http.HTTPStatus.OK]:
+                            progress.stop()
+                            try:
+                                detail = resp.json().get('detail', 'Unknown error')
+                                console.print(f"[red]{detail}[/red]")
+                            except Exception:
+                                console.print(f"[red]Error: HTTP {resp.status_code}[/red]")
                             return
 
                         resp.raise_for_status()
@@ -244,7 +272,7 @@ class Projects:
                         data = resp.json()
                         progress.console.print("Uploaded.")
                         progress.console.print("Processing document...")
-                        
+
                         while True:
                             if 'id' in data:
                                 # wait for document to be processed
