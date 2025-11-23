@@ -48,7 +48,9 @@ def main(
 	"""
 	pass
 
-app.add_typer(Projects.app, name='projects' , short_help= "Manage projects(s)")
+app.add_typer(Projects.app, name='project' , short_help= "Manage project(s)")
+# Add backward compatibility alias
+app.add_typer(Projects.app, name='projects' , short_help= "Manage project(s) (alias for 'project')")
 
 def load_file_content(filepath: str) -> str:
 	"""Load content from a file if it exists."""

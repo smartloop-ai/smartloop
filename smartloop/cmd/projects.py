@@ -40,7 +40,7 @@ class Projects:
             projects_list = [
                 inquirer.List(
                     "project",
-                    message="Select an project from the options below",
+                    message="Select a project from the options below",
                     choices=_projects,
                 ),
             ]
