@@ -1,8 +1,10 @@
-## Smartloop 
+## Smartloop [Depreciated]
 
-A open source platform to fine-tune and inference Foundational Model
+In favor of the on-device LLM framework
 
-Use the command line interface to upload, manage, and query documents based on fine-tuned LLM models. It uses the smartloop API to manage projects and documents and gives you an easy way to quickly process contents and reason based on it.
+An open source platform to fine-tune and inference the Foundational Model
+
+Use the command-line interface to upload, manage, and query documents using fine-tuned LLM models. It uses the smartloop API to manage projects and documents and gives you an easy way to process content and reason based on it quickly.
 
 
 ![PyPI - Version](https://img.shields.io/pypi/v/smartloop)
