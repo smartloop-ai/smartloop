@@ -3,8 +3,8 @@ set -euo pipefail
 
 VERSION="1.0.1"
 BASE_URL="https://storage.googleapis.com/smartloop-gcp-us-east-releases/${VERSION}"
-INSTALL_DIR="/usr/local/bin"
-LIB_DIR="/usr/local/lib/smartloop"
+INSTALL_DIR="$HOME/.local/bin"
+LIB_DIR="$HOME/.local/lib/smartloop"
 
 # Colors
 MUTED='\033[0;2m'
@@ -217,10 +217,10 @@ install_smartloop() {
     tar -xzf "${tmpdir}/slp.tar.gz" -C "$tmpdir"
 
     echo -e "${MUTED}Installing to ${NC}${INSTALL_DIR}${MUTED}...${NC}"
-    sudo mkdir -p "$LIB_DIR" "$INSTALL_DIR"
-    sudo rm -rf "${LIB_DIR:?}/"*
-    sudo cp -r "${tmpdir}/slp/"* "$LIB_DIR/"
-    sudo ln -sf "${LIB_DIR}/slp" "${INSTALL_DIR}/slp"
+    mkdir -p "$LIB_DIR" "$INSTALL_DIR"
+    rm -rf "${LIB_DIR:?}/"*
+    cp -r "${tmpdir}/slp/"* "$LIB_DIR/"
+    ln -sf "${LIB_DIR}/slp" "${INSTALL_DIR}/slp"
 
     echo -e "${MUTED}Verifying installation...${NC}"
     if ! "${INSTALL_DIR}/slp" --help &>/dev/null; then

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="/usr/local/bin"
-LIB_DIR="/usr/local/lib/smartloop"
+INSTALL_DIR="$HOME/.local/bin"
+LIB_DIR="$HOME/.local/lib/smartloop"
+LEGACY_INSTALL_DIR="/usr/local/bin"
+LEGACY_LIB_DIR="/usr/local/lib/smartloop"
 SERVICE_FILE="$HOME/.config/systemd/user/smartloop.service"
 LEGACY_SERVICE_FILE="/etc/systemd/system/smartloop.service"
 LAUNCHD_PLIST="$HOME/Library/LaunchAgents/com.smartloop.server.plist"
@@ -53,13 +55,25 @@ uninstall_smartloop() {
     # Remove symlink
     if [ -L "${INSTALL_DIR}/slp" ]; then
         info "Removing ${INSTALL_DIR}/slp..."
-        sudo rm -f "${INSTALL_DIR}/slp"
+        rm -f "${INSTALL_DIR}/slp"
+    fi
+
+    # Remove legacy symlink
+    if [ -L "${LEGACY_INSTALL_DIR}/slp" ]; then
+        info "Removing legacy ${LEGACY_INSTALL_DIR}/slp..."
+        sudo rm -f "${LEGACY_INSTALL_DIR}/slp"
     fi
 
     # Remove library directory
     if [ -d "$LIB_DIR" ]; then
         info "Removing ${LIB_DIR}..."
-        sudo rm -rf "$LIB_DIR"
+        rm -rf "$LIB_DIR"
+    fi
+
+    # Remove legacy library directory
+    if [ -d "$LEGACY_LIB_DIR" ]; then
+        info "Removing legacy ${LEGACY_LIB_DIR}..."
+        sudo rm -rf "$LEGACY_LIB_DIR"
     fi
 
     # Remove log files
