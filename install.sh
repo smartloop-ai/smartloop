@@ -7,7 +7,7 @@ INSTALL_DIR="/usr/local/bin"
 LIB_DIR="/usr/local/lib/smartloop"
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="e5a17278ec11b52c0b0492820ff3109bf650d4187971a5e9054427e76c6fb04b"
+DARWIN_ARM64_SHA256="cb6037023695a0340110c386fb4a03a453a15ae8ee41d199c3aff575819f4187"
 LINUX_AMD64_SHA256="11070808f96dbc039b95dfd0d088b6b8bfe6c7997d5fce85af892339f285b4d4"
 
 info() { printf "\033[1;34m==>\033[0m %s\n" "$1"; }
