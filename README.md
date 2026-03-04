@@ -1,176 +1,93 @@
-## Smartloop [Depreciated]
+# Smartloop
 
-In favor of the on-device LLM framework
-
-An open source platform to fine-tune and inference the Foundational Model
-
-Use the command-line interface to upload, manage, and query documents using fine-tuned LLM models. It uses the smartloop API to manage projects and documents and gives you an easy way to process content and reason based on it quickly.
-
-
-![PyPI - Version](https://img.shields.io/pypi/v/smartloop)
-
-## Requirements
-
-- Python 3.11
+An SLM framework for inference and fine-tuning models on edge devices.
 
 ## Installation
 
-Install the CLI with the following command:
-
-```
-pip install -U smartloop
-
-```
-Once installed, check that everything is setup correctly:
-
-
-
-```console
-smartloop --help
-                                                                                                                                                                     
- Usage: smartloop [OPTIONS] COMMAND [ARGS]...                                                                                                                          
-                                                                                                                                                                     
-╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --install-completion          Install completion for the current shell.                                                                                           │
-│ --show-completion             Show completion for the current shell, to copy it or customize the installation.                                                    │
-│ --help                        Show this message and exit.                                                                                                         │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ whoami    Find out which account you are logged in                                                                                                                │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-
-
+```bash
+curl -fsSL https://smartloop.ai/install | bash
 ```
 
-## Setup
-
-
-To authenticate with the Smartloop Platform, run the following command in your terminal:
+Or install via Homebrew:
 
 ```bash
-smartloop login
+brew tap smartloop-ai/smartloop
+brew install smartloop
 ```
 
-You will be prompted to visit [https://app.smartloop.ai/developer](https://app.smartloop.ai/developer) to copy your access token. Paste your token into the CLI when prompted. The token will be saved for future use.
-
-## Create a Project
-
-Once you have configured the CLI , you can start creating projects using the following command:
+### Upgrading
 
 ```bash
-smartloop projects create --name microsoft
+# via Homebrew
+brew update && brew upgrade smartloop
 ```
 
-## Select a Project
-
-Use the following command to interactively select a project:
-
+## Usage
 
 ```bash
-smartloop projects select
+# View available commands
+slp --help
+
+# Initialize a new project
+slp init -t <developer_token>
+
+# Add a document for training
+slp add document.pdf
+
+# Run interactive chat
+slp run
 ```
 
-## Upload Document
-
-Once the project is selected , upload documents from your folder or a specific file to personalized your project, in this case I am uploading the a document describing Microsoft online services form my local machine:
+### Project Management
 
 ```bash
-smartloop upload --path=~/document1.pdf
+slp projects create <name>
+slp projects list
+slp projects switch <name>
+slp status
 ```
 
-## Run It
+### Server Management
 
-Execute the following command to start prompting:
+SLP includes a background API server compatible with OpenAI's chat completion format:
 
 ```bash
-smartloop run
+slp server start
+slp server stop
+slp server status
 ```
 
-This will start a chat session with your currently selected project. If no project is currently selected, you'll be prompted to choose one interactively.
-
-### Run with a Specific Project
-
-You can also run a chat session directly with a specific project by providing its ID:
+On macOS, the server can also be managed via `brew services`:
 
 ```bash
-smartloop run --project-id your-project-id
+brew services start smartloop
+brew services stop smartloop
 ```
 
-This bypasses the need to first select a project and directly starts the chat session with the specified project.
-
-To find your project ID, you can list all your projects:
+On Linux/WSL, the installer creates a systemd service:
 
 ```bash
-smartloop projects list
+sudo systemctl start smartloop
+sudo systemctl stop smartloop
+sudo systemctl status smartloop
 ```
 
-This will bring up the interface to prompt your queries as shown below:
+### Supported Models
 
-```bash
-Microsoft(microsoft-24-07-2024)
-======================================
-Enter prompt (Ctrl-C to exit): 
-what the SLA for azure open ai
-⠋
-The SLA (Service Level Agreement) for Azure OpenAI is not explicitly mentioned in the provided text. However, it's possible that the SLA for Azure OpenAI might be similar to the one mentioned below:
+| Model | Base Model | Size |
+|-------|-----------|------|
+| `gemma3-1b` | google/gemma-3-1b-it | 1B |
+| `gemma3-4b` | google/gemma-3-4b-it | 4B |
+| `llama3-1b` | meta-llama/Llama-3.2-1B-Instruct | 1B |
+| `llama3-3b` | meta-llama/Llama-3.2-3B-Instruct | 3B |
+| `phi4-mini` | microsoft/phi-4-mini | 4B |
 
-"Uptime Percentage"
+## Requirements
 
-* Service Credit:
-+ < 99.9%: 10%
-+ < 99%: 25%
-+ < 95%: 100%
-
-Please note that this is not a direct quote from the provided text, but rather an inference based on the format and structure of the SLA mentioned for other Azure services (e.g., SAP HANA on Azure High Availability Pair). To confirm the actual SLA for Azure OpenAI, you should check the official Microsoft documentation or contact their support team.
-
-Prompt message (Ctrl-C to exit):
-```
-
-In order to set `temperature` of your conversation, which ranges from 0.0 to 1.0, use the following command:
-
-```bash 
-```
-
-To enable memory to retain context in the conversation, use the following command:
-
-```bash 
-```
-
-To disable memory, use the following command:
-
-```bash 
-smartloop projects set --id=project_id --no-memory
-
-```
-
-`LLM temperature is a parameter that influences the language model's output, determining whether the output is more random and creative or more predictable.`
-
-The higher value tends towards more creative answer
-
-
-## Supported Documents types
-
-* PDF
-* DOCX
-* TXT
-* CSV
-
-
-## Contributing
-
-Contributions are welcome! Please create a pull request with your changes. 
-
-
-## Contact
-
-If you have any questions or suggestions, please feel free to reach out to hello@smartloop.ai
-
-
-## References
-
-* [Smartloop API Documentation](https://api.smartloop.ai/v1/redoc)
-
+- macOS (Apple Silicon) or Linux (x86_64)
+- Python 3.11 or later (installed automatically via Homebrew)
+- CMake (installed automatically via Homebrew)
 
 ## License
 
-This project is licensed under the terms of the MIT license.
+Smartloop is distributed under the MIT License.
