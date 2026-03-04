@@ -7,7 +7,7 @@ INSTALL_DIR="/usr/local/bin"
 LIB_DIR="/usr/local/lib/smartloop"
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="48ccf608d643b8ac5afb9683a8dc1f7d9bb3677d444d822feef9971f8ec73d5c"
+DARWIN_ARM64_SHA256="e5a17278ec11b52c0b0492820ff3109bf650d4187971a5e9054427e76c6fb04b"
 LINUX_AMD64_SHA256="11070808f96dbc039b95dfd0d088b6b8bfe6c7997d5fce85af892339f285b4d4"
 
 info() { printf "\033[1;34m==>\033[0m %s\n" "$1"; }
@@ -75,7 +75,7 @@ install_smartloop() {
     expected_sha256="$(get_expected_sha256)"
 
     tmpdir="$(mktemp -d)"
-    trap 'rm -rf "$tmpdir"' EXIT
+    trap 'rm -rf "${tmpdir:-}"' EXIT
 
     info "Downloading Smartloop v${VERSION}..."
     curl -fL --progress-bar "$archive_url" -o "${tmpdir}/slp.tar.gz"
@@ -109,11 +109,24 @@ install_smartloop() {
 }
 
 setup_launchd_service() {
-    local plist="/Library/LaunchDaemons/com.smartloop.server.plist"
+    local plist_dir="$HOME/Library/LaunchAgents"
+    local plist="${plist_dir}/com.smartloop.server.plist"
+    local log_dir="$HOME/Library/Logs"
+    local log_file="${log_dir}/smartloop.log"
 
-    info "Creating launchd service..."
+    # Remove legacy system-level daemon if present
+    local legacy_plist="/Library/LaunchDaemons/com.smartloop.server.plist"
+    if [ -f "$legacy_plist" ]; then
+        info "Removing legacy system daemon..."
+        sudo launchctl unload "$legacy_plist" 2>/dev/null || true
+        sudo rm -f "$legacy_plist"
+    fi
 
-    sudo tee "$plist" > /dev/null <<EOF
+    info "Creating launchd user agent..."
+
+    mkdir -p "$plist_dir" "$log_dir"
+
+    cat > "$plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -133,29 +146,46 @@ setup_launchd_service() {
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/var/log/smartloop.log</string>
+    <string>${log_file}</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/smartloop.log</string>
+    <string>${log_file}</string>
 </dict>
 </plist>
 EOF
 
-    sudo launchctl unload "$plist" 2>/dev/null || true
-    sudo launchctl load -w "$plist"
+    launchctl unload "$plist" 2>/dev/null || true
+    launchctl load -w "$plist"
 
-    info "Launchd service created and loaded"
+    info "Launchd user agent created and loaded"
 
-    if sudo launchctl list com.smartloop.server 2>/dev/null | grep -q '"PID"'; then
+    if launchctl list com.smartloop.server 2>/dev/null | grep -q '"PID"'; then
         info "Service is running"
     else
-        error "Service failed to start. Check logs with: sudo tail -50 /var/log/smartloop.log"
+        error "Service failed to start. Check logs with: tail -50 ${log_file}"
     fi
 }
 
 setup_systemd_service() {
-    info "Creating systemd service..."
+    local service_dir="$HOME/.config/systemd/user"
+    local service_file="${service_dir}/smartloop.service"
+    local log_dir="$HOME/.local/log"
+    local log_file="${log_dir}/smartloop.log"
 
-    sudo tee /etc/systemd/system/smartloop.service > /dev/null <<EOF
+    # Remove legacy system-level service if present
+    local legacy_service="/etc/systemd/system/smartloop.service"
+    if [ -f "$legacy_service" ]; then
+        info "Removing legacy system service..."
+        sudo systemctl stop smartloop 2>/dev/null || true
+        sudo systemctl disable smartloop 2>/dev/null || true
+        sudo rm -f "$legacy_service"
+        sudo systemctl daemon-reload
+    fi
+
+    info "Creating systemd user service..."
+
+    mkdir -p "$service_dir" "$log_dir"
+
+    cat > "$service_file" <<EOF
 [Unit]
 Description=Smartloop Server
 After=network.target
@@ -166,23 +196,26 @@ ExecStart=${INSTALL_DIR}/slp server start
 Restart=on-failure
 RestartSec=5
 WorkingDirectory=${LIB_DIR}
-StandardOutput=append:/var/log/smartloop.log
-StandardError=append:/var/log/smartloop.log
+StandardOutput=append:${log_file}
+StandardError=append:${log_file}
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 EOF
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable smartloop
-    sudo systemctl restart smartloop
+    systemctl --user daemon-reload
+    systemctl --user enable smartloop
+    systemctl --user restart smartloop
 
-    info "Systemd service created, enabled, and started"
+    # Enable lingering so the user service starts at boot without login
+    loginctl enable-linger "$(whoami)" 2>/dev/null || true
 
-    if sudo systemctl is-active --quiet smartloop; then
+    info "Systemd user service created, enabled, and started"
+
+    if systemctl --user is-active --quiet smartloop; then
         info "Service is running"
     else
-        error "Service failed to start. Check logs with: sudo journalctl -u smartloop -n 50"
+        error "Service failed to start. Check logs with: journalctl --user -u smartloop -n 50"
     fi
 }
 

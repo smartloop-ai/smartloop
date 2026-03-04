@@ -39,19 +39,19 @@ main() {
 
         if [[ "$(uname -s)" == "Linux" ]]; then
             printf "\n"
-            if sudo systemctl is-active --quiet smartloop; then
+            if systemctl --user is-active --quiet smartloop; then
                 printf "\033[1;32m✔ smartloop service is running\033[0m\n"
             else
                 printf "\033[1;31m✘ smartloop service is NOT running\033[0m\n"
-                printf "  Check logs with: sudo journalctl -u smartloop -n 50\n"
+                printf "  Check logs with: journalctl --user -u smartloop -n 50\n"
             fi
         elif [[ "$(uname -s)" == "Darwin" ]]; then
             printf "\n"
-            if sudo launchctl list com.smartloop.server 2>/dev/null | grep -q '"PID"'; then
+            if launchctl list com.smartloop.server 2>/dev/null | grep -q '"PID"'; then
                 printf "\033[1;32m✔ smartloop service is running\033[0m\n"
             else
                 printf "\033[1;31m✘ smartloop service is NOT running\033[0m\n"
-                printf "  Check logs with: sudo tail -50 /var/log/smartloop.log\n"
+                printf "  Check logs with: tail -50 ~/Library/Logs/smartloop.log\n"
             fi
         fi
     fi

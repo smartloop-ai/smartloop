@@ -5,7 +5,7 @@ An SLM framework for inference and fine-tuning models on edge devices.
 ## Installation
 
 ```bash
-curl -fsSL https://smartloop.ai/install | bash
+curl -fsSL https://smartloop.ai/setup | bash
 ```
 
 Or install via Homebrew:
@@ -64,12 +64,12 @@ brew services start smartloop
 brew services stop smartloop
 ```
 
-On Linux/WSL, the installer creates a systemd service:
+On Linux/WSL, the installer creates a systemd user service:
 
 ```bash
-sudo systemctl start smartloop
-sudo systemctl stop smartloop
-sudo systemctl status smartloop
+systemctl --user start smartloop
+systemctl --user stop smartloop
+systemctl --user status smartloop
 ```
 
 ### Supported Models
