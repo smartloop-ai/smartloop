@@ -3,8 +3,7 @@ set -euo pipefail
 
 VERSION="1.0.1"
 BASE_URL="https://storage.googleapis.com/smartloop-gcp-us-east-releases/${VERSION}"
-INSTALL_DIR="/usr/local/bin"
-LIB_DIR="/usr/local/lib/smartloop"
+INSTALL_DIR="$HOME/.slp"
 
 # Colors
 MUTED='\033[0;2m'
@@ -16,8 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="cb6037023695a0340110c386fb4a03a453a15ae8ee41d199c3aff575819f4187"
-LINUX_AMD64_SHA256="11070808f96dbc039b95dfd0d088b6b8bfe6c7997d5fce85af892339f285b4d4"
+DARWIN_ARM64_SHA256="7f0bcb1e9a28dd6fab7a92456ba7314a1bf594ead7a0bd084ea9fc42dba7d18a"
+LINUX_AMD64_SHA256="3cc9c7b0f45dfd2c26b5fe7655abba48d924bfb0f1ab1baad57e34adedac1c70"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
@@ -124,61 +123,69 @@ download_with_progress() {
 
 add_to_path() {
     local config_file="$1"
-    local command="export PATH=${INSTALL_DIR}:\$PATH"
+    local command="$2"
 
-    if grep -Fq "$INSTALL_DIR" "$config_file" 2>/dev/null; then
+    if grep -Fxq "$command" "$config_file" 2>/dev/null; then
         return 0
-    elif [[ -w "$config_file" ]]; then
+    fi
+
+    if [[ -f "$config_file" ]] && [[ -w "$config_file" ]]; then
         echo -e "\n# smartloop" >> "$config_file"
         echo "$command" >> "$config_file"
-        echo -e "${MUTED}Successfully added ${NC}slp${MUTED} to \$PATH in ${NC}${config_file}"
+        echo -e "${MUTED}Added ${NC}slp${MUTED} to \$PATH in ${NC}${config_file}"
+    else
+        echo -e "${MUTED}Manually add to ${NC}${config_file}${MUTED}:${NC}"
+        echo -e "  $command"
     fi
 }
 
 setup_path() {
-    if [[ ":$PATH:" == *":${INSTALL_DIR}:"* ]]; then
+    # Make slp available in the current session immediately
+    export PATH="${INSTALL_DIR}:$PATH"
+
+    # Already on PATH (e.g. from a previous install), nothing to persist
+    if [[ ":$PATH:" == *":$INSTALL_DIR:"* ]] && grep -Fq "$INSTALL_DIR" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.config/fish/config.fish" 2>/dev/null; then
         return 0
     fi
 
-    local current_shell
-    current_shell=$(basename "${SHELL:-bash}")
+    local current_shell config_files config_file path_command
+    current_shell="$(basename "$SHELL")"
 
-    local config_file=""
     case "$current_shell" in
+        fish)
+            config_files="$HOME/.config/fish/config.fish"
+            path_command="fish_add_path $INSTALL_DIR"
+            ;;
         zsh)
-            for f in "${ZDOTDIR:-$HOME}/.zshrc" "$HOME/.zshrc"; do
-                if [[ -f "$f" ]]; then config_file="$f"; break; fi
-            done
+            config_files="${ZDOTDIR:-$HOME}/.zshrc"
+            path_command="export PATH=\"${INSTALL_DIR}:\$PATH\""
             ;;
         bash)
-            for f in "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
-                if [[ -f "$f" ]]; then config_file="$f"; break; fi
-            done
-            ;;
-        fish)
-            config_file="$HOME/.config/fish/config.fish"
+            config_files="$HOME/.bashrc $HOME/.bash_profile $HOME/.profile"
+            path_command="export PATH=\"${INSTALL_DIR}:\$PATH\""
             ;;
         *)
-            for f in "$HOME/.bashrc" "$HOME/.profile"; do
-                if [[ -f "$f" ]]; then config_file="$f"; break; fi
-            done
+            config_files="$HOME/.bashrc $HOME/.profile"
+            path_command="export PATH=\"${INSTALL_DIR}:\$PATH\""
             ;;
     esac
 
-    if [[ -n "$config_file" ]]; then
-        if [[ "$current_shell" == "fish" ]]; then
-            if ! grep -Fq "$INSTALL_DIR" "$config_file" 2>/dev/null; then
-                echo -e "\n# smartloop" >> "$config_file"
-                echo "fish_add_path $INSTALL_DIR" >> "$config_file"
-                echo -e "${MUTED}Successfully added ${NC}slp${MUTED} to \$PATH in ${NC}${config_file}"
-            fi
-        else
-            add_to_path "$config_file"
+    # Find the first existing config file for the detected shell
+    config_file=""
+    for f in $config_files; do
+        if [[ -f "$f" ]]; then
+            config_file="$f"
+            break
         fi
-    else
-        echo -e "${MUTED}Manually add to your shell config:${NC}"
-        echo -e "  export PATH=${INSTALL_DIR}:\$PATH"
+    done
+
+    if [[ -z "$config_file" ]]; then
+        echo -e "${MUTED}No config file found for ${NC}${current_shell}${MUTED}. Manually add to your shell config:${NC}"
+        echo -e "  $path_command"
+        return 0
     fi
+
+    add_to_path "$config_file" "$path_command"
 }
 
 print_banner() {
@@ -190,6 +197,7 @@ print_banner() {
     echo -e ""
     echo -e "${MUTED}To get started:${NC}"
     echo -e ""
+    echo -e "  slp status  ${MUTED}# Check if the server is running${NC}"
     echo -e "  slp  ${MUTED}# Start the TUI${NC}"
     echo -e ""
     echo -e "${MUTED}For more information visit ${NC}https://smartloop.ai/docs/intro/"
@@ -217,10 +225,9 @@ install_smartloop() {
     tar -xzf "${tmpdir}/slp.tar.gz" -C "$tmpdir"
 
     echo -e "${MUTED}Installing to ${NC}${INSTALL_DIR}${MUTED}...${NC}"
-    sudo mkdir -p "$LIB_DIR" "$INSTALL_DIR"
-    sudo rm -rf "${LIB_DIR:?}/"*
-    sudo cp -r "${tmpdir}/slp/"* "$LIB_DIR/"
-    sudo ln -sf "${LIB_DIR}/slp" "${INSTALL_DIR}/slp"
+    mkdir -p "$INSTALL_DIR"
+    rm -rf "${INSTALL_DIR:?}/"*
+    cp -r "${tmpdir}/slp/"* "$INSTALL_DIR/"
 
     echo -e "${MUTED}Verifying installation...${NC}"
     if ! "${INSTALL_DIR}/slp" --help &>/dev/null; then
@@ -230,7 +237,6 @@ install_smartloop() {
     setup_path
 
     echo -e "${MUTED}Starting background service...${NC}"
-    # Create service
     if [ "$OS" = "linux" ]; then
         setup_systemd_service
     elif [ "$OS" = "darwin" ]; then
@@ -239,6 +245,7 @@ install_smartloop() {
 
     print_banner
 }
+
 
 setup_launchd_service() {
     local plist_dir="$HOME/Library/LaunchAgents"
@@ -269,7 +276,7 @@ setup_launchd_service() {
         <string>start</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>${LIB_DIR}</string>
+    <string>${INSTALL_DIR}</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
@@ -317,7 +324,7 @@ Type=simple
 ExecStart=${INSTALL_DIR}/slp server start
 Restart=on-failure
 RestartSec=5
-WorkingDirectory=${LIB_DIR}
+WorkingDirectory=${INSTALL_DIR}
 StandardOutput=append:${log_file}
 StandardError=append:${log_file}
 

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="/usr/local/bin"
-LIB_DIR="/usr/local/lib/smartloop"
+INSTALL_DIR="$HOME/.slp"
+LEGACY_INSTALL_DIR="/usr/local/bin"
+LEGACY_LIB_DIR="/usr/local/lib/smartloop"
+LEGACY_LOCAL_DIR="$HOME/.local/lib/smartloop"
+LEGACY_LOCAL_BIN="$HOME/.local/bin"
 SERVICE_FILE="$HOME/.config/systemd/user/smartloop.service"
 LEGACY_SERVICE_FILE="/etc/systemd/system/smartloop.service"
 LAUNCHD_PLIST="$HOME/Library/LaunchAgents/com.smartloop.server.plist"
@@ -50,16 +53,33 @@ uninstall_smartloop() {
         info "Legacy launchd daemon removed"
     fi
 
-    # Remove symlink
-    if [ -L "${INSTALL_DIR}/slp" ]; then
-        info "Removing ${INSTALL_DIR}/slp..."
-        sudo rm -f "${INSTALL_DIR}/slp"
+    # Remove install directory
+    if [ -d "$INSTALL_DIR" ]; then
+        info "Removing ${INSTALL_DIR}..."
+        rm -rf "$INSTALL_DIR"
     fi
 
-    # Remove library directory
-    if [ -d "$LIB_DIR" ]; then
-        info "Removing ${LIB_DIR}..."
-        sudo rm -rf "$LIB_DIR"
+    # Remove legacy symlink
+    if [ -L "${LEGACY_INSTALL_DIR}/slp" ]; then
+        info "Removing legacy ${LEGACY_INSTALL_DIR}/slp..."
+        sudo rm -f "${LEGACY_INSTALL_DIR}/slp"
+    fi
+
+    # Remove legacy local bin symlink
+    if [ -L "${LEGACY_LOCAL_BIN}/slp" ]; then
+        info "Removing legacy ${LEGACY_LOCAL_BIN}/slp..."
+        rm -f "${LEGACY_LOCAL_BIN}/slp"
+    fi
+
+    # Remove legacy library directories
+    if [ -d "$LEGACY_LOCAL_DIR" ]; then
+        info "Removing legacy ${LEGACY_LOCAL_DIR}..."
+        rm -rf "$LEGACY_LOCAL_DIR"
+    fi
+
+    if [ -d "$LEGACY_LIB_DIR" ]; then
+        info "Removing legacy ${LEGACY_LIB_DIR}..."
+        sudo rm -rf "$LEGACY_LIB_DIR"
     fi
 
     # Remove log files
@@ -75,6 +95,6 @@ uninstall_smartloop() {
     printf "\n\033[1;32mSmartloop uninstalled successfully.\033[0m\n"
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ "${BASH_SOURCE[0]:-}" == "${0:-}" ]] || [[ -z "${BASH_SOURCE[0]:-}" ]]; then
     uninstall_smartloop
 fi

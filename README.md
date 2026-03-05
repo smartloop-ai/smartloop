@@ -1,28 +1,36 @@
-# Smartloop
+<p align="center">
+  <a href="https://smartloop.ai">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/9ced8d4f-3c5d-46e5-a1e8-0b7e9e70e4d9" />
+      <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/c08ace32-92f9-4d50-849e-ee68c4ac1a48" />
+      <img width="149" height="28" alt="Smartloop" src="https://github.com/user-attachments/assets/9ced8d4f-3c5d-46e5-a1e8-0b7e9e70e4d9" />
+    </picture>
+  </a>
+</p>
+<p align="center">A small language model framework for local inference and fine-tuning.</p>
+<p align="center">
+  <a href="https://github.com/smartloop-ai/smartloop/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
+</p>
 
-An SLM framework for inference and fine-tuning models on edge devices.
+[![Smartloop Terminal UI](screenshot.png)](https://smartloop.ai)
 
-## Installation
+---
+
+### Installation
 
 ```bash
+# Quick install
 curl -fsSL https://smartloop.ai/install | bash
-```
 
-Or install via Homebrew:
-
-```bash
+# Homebrew
 brew tap smartloop-ai/smartloop
 brew install smartloop
 ```
 
-### Upgrading
+> [!TIP]
+> To upgrade via Homebrew: `brew update && brew upgrade smartloop`
 
-```bash
-# via Homebrew
-brew update && brew upgrade smartloop
-```
-
-## Usage
+### Usage
 
 ```bash
 # View available commands
@@ -36,7 +44,11 @@ slp add document.pdf
 
 # Run interactive chat
 slp run
+
+# no tui 
+slp run --no-tui
 ```
+
 
 ### Project Management
 
@@ -49,7 +61,7 @@ slp status
 
 ### Server Management
 
-SLP includes a background API server compatible with OpenAI's chat completion format:
+SLP includes a background API server compatible with OpenAI's chat completion format.
 
 ```bash
 slp server start
@@ -57,7 +69,7 @@ slp server stop
 slp server status
 ```
 
-On macOS, the server can also be managed via `brew services` (if install using homebrew):
+On macOS, the server can also be managed via `brew services` (if installed using Homebrew):
 
 ```bash
 brew services start smartloop
@@ -75,19 +87,19 @@ systemctl --user status smartloop
 ### Supported Models
 
 | Model | Base Model | Size |
-|-------|-----------|------|
+| ----- | ---------- | ---- |
 | `gemma3-1b` | google/gemma-3-1b-it | 1B |
 | `gemma3-4b` | google/gemma-3-4b-it | 4B |
 | `llama3-1b` | meta-llama/Llama-3.2-1B-Instruct | 1B |
 | `llama3-3b` | meta-llama/Llama-3.2-3B-Instruct | 3B |
 | `phi4-mini` | microsoft/phi-4-mini | 4B |
 
-## Requirements
+### Requirements
 
 - macOS (Apple Silicon) or Linux (x86_64)
 - Python 3.11 or later (installed automatically via Homebrew)
 - CMake (installed automatically via Homebrew)
 
-## License
+### License
 
 Smartloop is distributed under the MIT License.
