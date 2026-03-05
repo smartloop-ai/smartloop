@@ -89,6 +89,6 @@ uninstall_smartloop() {
     printf "\n\033[1;32mSmartloop uninstalled successfully.\033[0m\n"
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ "${BASH_SOURCE[0]:-}" == "${0:-}" ]] || [[ -z "${BASH_SOURCE[0]:-}" ]]; then
     uninstall_smartloop
 fi
