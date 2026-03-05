@@ -16,8 +16,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="cb6037023695a0340110c386fb4a03a453a15ae8ee41d199c3aff575819f4187"
-LINUX_AMD64_SHA256="11070808f96dbc039b95dfd0d088b6b8bfe6c7997d5fce85af892339f285b4d4"
+DARWIN_ARM64_SHA256="7f0bcb1e9a28dd6fab7a92456ba7314a1bf594ead7a0bd084ea9fc42dba7d18a"
+LINUX_AMD64_SHA256="3cc9c7b0f45dfd2c26b5fe7655abba48d924bfb0f1ab1baad57e34adedac1c70"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
@@ -140,42 +140,28 @@ setup_path() {
         return 0
     fi
 
-    local current_shell
-    current_shell=$(basename "${SHELL:-bash}")
+    local found=false
 
-    local config_file=""
-    case "$current_shell" in
-        zsh)
-            for f in "${ZDOTDIR:-$HOME}/.zshrc" "$HOME/.zshrc"; do
-                if [[ -f "$f" ]]; then config_file="$f"; break; fi
-            done
-            ;;
-        bash)
-            for f in "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
-                if [[ -f "$f" ]]; then config_file="$f"; break; fi
-            done
-            ;;
-        fish)
-            config_file="$HOME/.config/fish/config.fish"
-            ;;
-        *)
-            for f in "$HOME/.bashrc" "$HOME/.profile"; do
-                if [[ -f "$f" ]]; then config_file="$f"; break; fi
-            done
-            ;;
-    esac
-
-    if [[ -n "$config_file" ]]; then
-        if [[ "$current_shell" == "fish" ]]; then
-            if ! grep -Fq "$INSTALL_DIR" "$config_file" 2>/dev/null; then
-                echo -e "\n# smartloop" >> "$config_file"
-                echo "fish_add_path $INSTALL_DIR" >> "$config_file"
-                echo -e "${MUTED}Successfully added ${NC}slp${MUTED} to \$PATH in ${NC}${config_file}"
-            fi
-        else
-            add_to_path "$config_file"
+    # Add to all existing shell config files
+    for f in "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zshrc" "${ZDOTDIR:-$HOME}/.zshrc"; do
+        if [[ -f "$f" ]]; then
+            add_to_path "$f"
+            found=true
         fi
-    else
+    done
+
+    # Handle fish separately
+    local fish_config="$HOME/.config/fish/config.fish"
+    if [[ -f "$fish_config" ]]; then
+        if ! grep -Fq "$INSTALL_DIR" "$fish_config" 2>/dev/null; then
+            echo -e "\n# smartloop" >> "$fish_config"
+            echo "fish_add_path $INSTALL_DIR" >> "$fish_config"
+            echo -e "${MUTED}Successfully added ${NC}slp${MUTED} to \$PATH in ${NC}${fish_config}"
+        fi
+        found=true
+    fi
+
+    if [[ "$found" == false ]]; then
         echo -e "${MUTED}Manually add to your shell config:${NC}"
         echo -e "  export PATH=${INSTALL_DIR}:\$PATH"
     fi
@@ -222,6 +208,8 @@ install_smartloop() {
     cp -r "${tmpdir}/slp/"* "$LIB_DIR/"
     ln -sf "${LIB_DIR}/slp" "${INSTALL_DIR}/slp"
 
+    create_path_shim
+
     echo -e "${MUTED}Verifying installation...${NC}"
     if ! "${INSTALL_DIR}/slp" --help &>/dev/null; then
         error "Installation verification failed: 'slp --help' did not succeed"
@@ -230,7 +218,6 @@ install_smartloop() {
     setup_path
 
     echo -e "${MUTED}Starting background service...${NC}"
-    # Create service
     if [ "$OS" = "linux" ]; then
         setup_systemd_service
     elif [ "$OS" = "darwin" ]; then
@@ -238,6 +225,41 @@ install_smartloop() {
     fi
 
     print_banner
+}
+
+create_path_shim() {
+    local shim_path=""
+    
+    if [ -d "/usr/local/bin" ] && [ -w "/usr/local/bin" ]; then
+        shim_path="/usr/local/bin/slp"
+    elif [ -w "/usr/bin" ]; then
+        shim_path="/usr/bin/slp"
+    fi
+
+    if [ -n "$shim_path" ]; then
+        if [ -L "$shim_path" ]; then
+            rm -f "$shim_path"
+        fi
+        ln -sf "${LIB_DIR}/slp" "$shim_path"
+        echo -e "${MUTED}Created shim at ${NC}${shim_path}${MUTED} (already in PATH)"
+        return 0
+    fi
+
+    for dir in /usr/bin /usr/local/bin; do
+        if [ ! -w "$(dirname "$dir")" ]; then
+            continue
+        fi
+        if mkdir -p "$dir" 2>/dev/null && touch "$dir/slp_test" 2>/dev/null; then
+            rm -f "$dir/slp_test"
+            ln -sf "${LIB_DIR}/slp" "$dir/slp"
+            echo -e "${MUTED}Created shim at ${NC}${dir}/slp${MUTED} (already in PATH)"
+            return 0
+        fi
+    done
+
+    echo -e "${MUTED}Could not create shim in system PATH. Using ${NC}${INSTALL_DIR}"
+    echo -e "${MUTED}Note: You may need to restart your shell or run:${NC}"
+    echo -e "  source ~/.bashrc  # or ~/.zshrc"
 }
 
 setup_launchd_service() {
