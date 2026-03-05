@@ -2,6 +2,8 @@
 
 An SLM framework for inference and fine-tuning models on edge devices.
 
+<img width="1076" height="963" alt="Screenshot 2026-03-04 at 4 18 39 PM" src="https://github.com/user-attachments/assets/0d725cf6-5b92-4561-b782-6f1be2b318fd" />
+
 ## Installation
 
 ```bash
