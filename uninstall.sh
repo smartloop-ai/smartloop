@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="$HOME/.slp"
+INSTALL_DIR="$HOME/.smartloop"
+LEGACY_INSTALL_DIR="$HOME/.slp"
 LEGACY_INSTALL_DIR="/usr/local/bin"
 LEGACY_LIB_DIR="/usr/local/lib/smartloop"
 LEGACY_LOCAL_DIR="$HOME/.local/lib/smartloop"
@@ -57,6 +58,12 @@ uninstall_smartloop() {
     if [ -d "$INSTALL_DIR" ]; then
         info "Removing ${INSTALL_DIR}..."
         rm -rf "$INSTALL_DIR"
+    fi
+
+    # Remove legacy .slp folder
+    if [ -d "$LEGACY_INSTALL_DIR" ]; then
+        info "Removing legacy ${LEGACY_INSTALL_DIR}..."
+        rm -rf "$LEGACY_INSTALL_DIR"
     fi
 
     # Remove legacy symlink

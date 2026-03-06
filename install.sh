@@ -3,7 +3,7 @@ set -euo pipefail
 
 VERSION="1.0.1"
 BASE_URL="https://storage.googleapis.com/smartloop-gcp-us-east-releases/${VERSION}"
-INSTALL_DIR="$HOME/.slp"
+INSTALL_DIR="$HOME/.smartloop"
 
 # Colors
 MUTED='\033[0;2m'
@@ -15,8 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="7f0bcb1e9a28dd6fab7a92456ba7314a1bf594ead7a0bd084ea9fc42dba7d18a"
-LINUX_AMD64_SHA256="3cc9c7b0f45dfd2c26b5fe7655abba48d924bfb0f1ab1baad57e34adedac1c70"
+DARWIN_ARM64_SHA256="f83a5035c33e34a94ce90a16734fc69f07738ba9f3c83c4ee83441221fd07438"
+LINUX_AMD64_SHA256="98101e4bfc34cbb70fe771c9cea3ac12e0cb09d90a42755747296c595a98200e"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
