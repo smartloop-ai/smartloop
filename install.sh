@@ -15,8 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="f83a5035c33e34a94ce90a16734fc69f07738ba9f3c83c4ee83441221fd07438"
-LINUX_AMD64_SHA256="98101e4bfc34cbb70fe771c9cea3ac12e0cb09d90a42755747296c595a98200e"
+DARWIN_ARM64_SHA256="43cee4784ee503008f45b6458a7e5ebc6e9121036d70c8745ef3d196898c20f4"
+LINUX_AMD64_SHA256="321a30edf3fa4c59d0cf96bfe6f02551588cfe6536c2620ddfdb5beffbcd8691"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
@@ -54,7 +54,7 @@ get_expected_sha256() {
     fi
 }
 
-verify_checksum() {
+verify_checksum_quiet() {
     local file="$1" expected="$2" actual
 
     if command -v sha256sum &>/dev/null; then
@@ -62,11 +62,17 @@ verify_checksum() {
     elif command -v shasum &>/dev/null; then
         actual="$(shasum -a 256 "$file" | awk '{print $1}')"
     else
-        error "No sha256 tool found (need sha256sum or shasum)"
+        return 1
     fi
 
-    if [ "$actual" != "$expected" ]; then
-        error "Checksum verification failed.\n  Expected: $expected\n  Got:      $actual"
+    [ "$actual" = "$expected" ]
+}
+
+verify_checksum() {
+    local file="$1" expected="$2"
+
+    if ! verify_checksum_quiet "$file" "$2"; then
+        error "Checksum verification failed."
     fi
 }
 
@@ -140,14 +146,6 @@ add_to_path() {
 }
 
 setup_path() {
-    # Make slp available in the current session immediately
-    export PATH="${INSTALL_DIR}:$PATH"
-
-    # Already on PATH (e.g. from a previous install), nothing to persist
-    if [[ ":$PATH:" == *":$INSTALL_DIR:"* ]] && grep -Fq "$INSTALL_DIR" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.config/fish/config.fish" 2>/dev/null; then
-        return 0
-    fi
-
     local current_shell config_files config_file path_command
     current_shell="$(basename "$SHELL")"
 
@@ -186,6 +184,9 @@ setup_path() {
     fi
 
     add_to_path "$config_file" "$path_command"
+
+    # Make slp available in the current session immediately
+    export PATH="${INSTALL_DIR}:$PATH"
 }
 
 print_banner() {
@@ -212,17 +213,27 @@ install_smartloop() {
     archive_url="${BASE_URL}/${OS}/${ARCH}/slp.tar.gz"
     expected_sha256="$(get_expected_sha256)"
 
+    local cache_dir="${INSTALL_DIR}/cache"
+    local cached_archive="${cache_dir}/slp-${VERSION}-${OS}-${ARCH}.tar.gz"
+
+    mkdir -p "$cache_dir"
+
+    # Skip download if cached archive matches expected checksum
+    if [ -f "$cached_archive" ] && verify_checksum_quiet "$cached_archive" "$expected_sha256"; then
+        echo -e "\n${MUTED}Using cached archive for ${NC}smartloop${MUTED} version: ${NC}${VERSION}"
+    else
+        echo -e "\n${MUTED}Downloading ${NC}smartloop${MUTED} version: ${NC}${VERSION}"
+        download_with_progress "$archive_url" "$cached_archive"
+
+        echo -e "${MUTED}Verifying checksum...${NC}"
+        verify_checksum "$cached_archive" "$expected_sha256"
+    fi
+
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "${tmpdir:-}"' EXIT
 
-    echo -e "\n${MUTED}Downloading ${NC}smartloop${MUTED} version: ${NC}${VERSION}"
-    download_with_progress "$archive_url" "${tmpdir}/slp.tar.gz"
-
-    echo -e "${MUTED}Verifying checksum...${NC}"
-    verify_checksum "${tmpdir}/slp.tar.gz" "$expected_sha256"
-
     echo -e "${MUTED}Extracting...${NC}"
-    tar -xzf "${tmpdir}/slp.tar.gz" -C "$tmpdir"
+    tar -xzf "$cached_archive" -C "$tmpdir"
 
     echo -e "${MUTED}Installing to ${NC}${INSTALL_DIR}${MUTED}...${NC}"
     mkdir -p "$INSTALL_DIR"

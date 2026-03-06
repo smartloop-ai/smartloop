@@ -3,15 +3,12 @@ set -euo pipefail
 
 INSTALL_DIR="$HOME/.smartloop"
 LEGACY_INSTALL_DIR="$HOME/.slp"
-LEGACY_INSTALL_DIR="/usr/local/bin"
-LEGACY_LIB_DIR="/usr/local/lib/smartloop"
-LEGACY_LOCAL_DIR="$HOME/.local/lib/smartloop"
-LEGACY_LOCAL_BIN="$HOME/.local/bin"
 SERVICE_FILE="$HOME/.config/systemd/user/smartloop.service"
 LEGACY_SERVICE_FILE="/etc/systemd/system/smartloop.service"
 LAUNCHD_PLIST="$HOME/Library/LaunchAgents/com.smartloop.server.plist"
 LEGACY_LAUNCHD_PLIST="/Library/LaunchDaemons/com.smartloop.server.plist"
 LOG_FILE="$HOME/Library/Logs/smartloop.log"
+LINUX_LOG_FILE="$HOME/.local/log/smartloop.log"
 LEGACY_LOG_FILE="/var/log/smartloop.log"
 
 info()  { printf "\033[1;34m==>\033[0m %s\n" "$1"; }
@@ -66,38 +63,40 @@ uninstall_smartloop() {
         rm -rf "$LEGACY_INSTALL_DIR"
     fi
 
-    # Remove legacy symlink
-    if [ -L "${LEGACY_INSTALL_DIR}/slp" ]; then
-        info "Removing legacy ${LEGACY_INSTALL_DIR}/slp..."
-        sudo rm -f "${LEGACY_INSTALL_DIR}/slp"
-    fi
-
-    # Remove legacy local bin symlink
-    if [ -L "${LEGACY_LOCAL_BIN}/slp" ]; then
-        info "Removing legacy ${LEGACY_LOCAL_BIN}/slp..."
-        rm -f "${LEGACY_LOCAL_BIN}/slp"
-    fi
-
-    # Remove legacy library directories
-    if [ -d "$LEGACY_LOCAL_DIR" ]; then
-        info "Removing legacy ${LEGACY_LOCAL_DIR}..."
-        rm -rf "$LEGACY_LOCAL_DIR"
-    fi
-
-    if [ -d "$LEGACY_LIB_DIR" ]; then
-        info "Removing legacy ${LEGACY_LIB_DIR}..."
-        sudo rm -rf "$LEGACY_LIB_DIR"
-    fi
-
     # Remove log files
     if [ -f "$LOG_FILE" ]; then
         info "Removing log file ${LOG_FILE}..."
         rm -f "$LOG_FILE"
     fi
+    if [ -f "$LINUX_LOG_FILE" ]; then
+        info "Removing log file ${LINUX_LOG_FILE}..."
+        rm -f "$LINUX_LOG_FILE"
+    fi
     if [ -f "$LEGACY_LOG_FILE" ]; then
         info "Removing legacy log file ${LEGACY_LOG_FILE}..."
         sudo rm -f "$LEGACY_LOG_FILE"
     fi
+
+    # Remove PATH entries from shell config files
+    local config_files=(
+        "$HOME/.bashrc"
+        "$HOME/.bash_profile"
+        "$HOME/.profile"
+        "${ZDOTDIR:-$HOME}/.zshrc"
+        "$HOME/.config/fish/config.fish"
+    )
+
+    for config_file in "${config_files[@]}"; do
+        if [ -f "$config_file" ]; then
+            if grep -q "$INSTALL_DIR" "$config_file" 2>/dev/null || grep -q "$LEGACY_INSTALL_DIR" "$config_file" 2>/dev/null; then
+                info "Cleaning PATH from ${config_file}..."
+                sed -i.bak '/# smartloop/d' "$config_file"
+                sed -i.bak "\|${INSTALL_DIR}|d" "$config_file"
+                sed -i.bak "\|${LEGACY_INSTALL_DIR}|d" "$config_file"
+                rm -f "${config_file}.bak"
+            fi
+        fi
+    done
 
     printf "\n\033[1;32mSmartloop uninstalled successfully.\033[0m\n"
 }
