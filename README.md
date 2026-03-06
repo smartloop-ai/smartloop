@@ -30,6 +30,17 @@ brew install smartloop
 > [!TIP]
 > To upgrade via Homebrew: `brew update && brew upgrade smartloop`
 
+### Uninstall
+
+```bash
+# If installed via curl
+curl -fsSL https://smartloop.ai/uninstall | bash
+
+# If installed via Homebrew
+brew uninstall smartloop
+brew untap smartloop-ai/smartloop
+```
+
 ### Usage
 
 ```bash
