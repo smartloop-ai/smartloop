@@ -247,6 +247,20 @@ install_smartloop() {
 
     setup_path
 
+    if [ -d "$HOME/.local/bin" ] && [ -w "$HOME/.local/bin" ]; then
+        ln -sf "${INSTALL_DIR}/slp" "$HOME/.local/bin/slp" 2>/dev/null || true
+    elif [ -w /usr/local/bin ]; then
+        ln -sf "${INSTALL_DIR}/slp" /usr/local/bin/slp 2>/dev/null || true
+    else
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "${INSTALL_DIR}/slp" "$HOME/.local/bin/slp" 2>/dev/null || true
+        echo ""
+        echo -e "${GREEN}To use slp immediately, add to your shell config:${NC}"
+        echo -e "  ${BOLD}fish_add_path -g $HOME/.local/bin${NC}  # fish"
+        echo -e "  ${BOLD}export PATH=\"$HOME/.local/bin:\$PATH\"${NC}  # bash/zsh"
+        echo ""
+    fi
+
     echo -e "${MUTED}Starting background service...${NC}"
     if [ "$OS" = "linux" ]; then
         setup_systemd_service
