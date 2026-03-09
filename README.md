@@ -9,7 +9,7 @@
 </p>
 <p align="center">A small language model framework for local inference and fine-tuning.</p>
 <p align="center">
-  <a href="https://github.com/smartloop-ai/smartloop/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
+  <a href="https://github.com/smartloop-ai/smartloop/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPL%20v3-pink?style=flat-square" /></a>
 </p>
 
 [![Smartloop Terminal UI](screenshot.png)](https://smartloop.ai)
@@ -108,9 +108,9 @@ systemctl --user status smartloop
 ### Requirements
 
 - macOS (Apple Silicon) or Linux (x86_64)
-- Python 3.11 or later (installed automatically via Homebrew)
-- CMake (installed automatically via Homebrew)
 
 ### License
 
-Smartloop is distributed under the MIT License.
+© 2016 Smartloop Inc.
+
+All code is licensed under the GPL, v3 or later. See [LICENSE](LICENSE) file for details.
