@@ -7,7 +7,7 @@
     </picture>
   </a>
 </p>
-<p align="center">A small language model framework for local inference and fine-tuning.</p>
+<p align="center">A small language model framework for local inference and auto-tuning</p>
 <p align="center">
   <a href="https://github.com/smartloop-ai/smartloop/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPL%20v3-pink?style=flat-square" /></a>
 </p>
