@@ -18,13 +18,36 @@
 
 ### Installation
 
+using `curl`
+
 ```bash
 # Quick install
 curl -fsSL https://smartloop.ai/install | bash
+```
 
+Using `homebrew`, recommended for mac systems:
+
+```bash
 # Homebrew
 brew tap smartloop-ai/smartloop
 brew install smartloop
+```
+
+From source:
+
+> [!NOTE]
+> Requires Python 3.11. For NVIDIA GPU acceleration, install [CUDA 12.6](https://developer.nvidia.com/cuda-12-6-0-download-archive) before proceeding.
+
+```bash
+# Clone the repository
+git clone https://github.com/smartloop-ai/smartloop.git
+cd smartloop
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+python main.py run
 ```
 
 > [!TIP]
@@ -36,7 +59,7 @@ brew install smartloop
 # If installed via curl
 curl -fsSL https://smartloop.ai/uninstall | bash
 
-# If installed via Homebrew
+# If installed via Homebrew, recommended for mac systems
 brew uninstall smartloop
 brew untap smartloop-ai/smartloop
 ```
@@ -95,19 +118,11 @@ systemctl --user stop smartloop
 systemctl --user status smartloop
 ```
 
-### Supported Models
-
-| Model | Base Model | Size |
-| ----- | ---------- | ---- |
-| `gemma3-1b` | google/gemma-3-1b-it | 1B |
-| `gemma3-4b` | google/gemma-3-4b-it | 4B |
-| `llama3-1b` | meta-llama/Llama-3.2-1B-Instruct | 1B |
-| `llama3-3b` | meta-llama/Llama-3.2-3B-Instruct | 3B |
-| `phi4-mini` | microsoft/phi-4-mini | 4B |
-
 ### Requirements
 
 - macOS (Apple Silicon) or Linux (x86_64)
+- Python 3.11 (required for installing from source)
+- CUDA 12.6 (optional, for NVIDIA GPU acceleration)
 
 ### License
 
