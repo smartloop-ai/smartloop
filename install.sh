@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="1.0.1"
+VERSION="1.0.2"
 BASE_URL="https://storage.googleapis.com/smartloop-gcp-us-east-releases/${VERSION}"
 INSTALL_DIR="$HOME/.smartloop"
 
@@ -15,8 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="5b9bd06168d2679bb6a59c72b9864b82f11c618f425591582f7091374b392708"
-LINUX_AMD64_SHA256="8b3e11076a36e746115a9477d3f908aa92cd877c50be9a2b36525a3a22ebe5d6"
+DARWIN_ARM64_SHA256="9d4986b1652c8f8f04d594b28d575b7be41fa905839880dbeeda8a422652cd04"
+LINUX_AMD64_SHA256="8d3e9a59d54d302facc48ccf4dace6846f87e29c40b4fd8f698e810fb52f306b"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
@@ -304,8 +304,6 @@ setup_launchd_service() {
     <string>${INSTALL_DIR}</string>
     <key>RunAtLoad</key>
     <true/>
-    <key>KeepAlive</key>
-    <true/>
     <key>StandardOutPath</key>
     <string>${log_file}</string>
     <key>StandardErrorPath</key>
@@ -314,8 +312,11 @@ setup_launchd_service() {
 </plist>
 EOF
 
-    launchctl unload "$plist" 2>/dev/null || true
-    launchctl load -w "$plist"
+    # Unload any existing service before loading
+    launchctl bootout "gui/$(id -u)/com.smartloop.server" 2>/dev/null || \
+        launchctl unload "$plist" 2>/dev/null || true
+    launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null || \
+        launchctl load -w "$plist"
 
     if ! launchctl list com.smartloop.server 2>/dev/null | grep -q '"PID"'; then
         echo -e "${RED}Service failed to start.${NC} Check logs with: tail -50 ${log_file}"

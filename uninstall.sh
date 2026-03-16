@@ -38,7 +38,8 @@ uninstall_smartloop() {
     # Unload launchd user agent (macOS)
     if [ -f "$LAUNCHD_PLIST" ]; then
         info "Unloading smartloop launchd user agent..."
-        launchctl unload "$LAUNCHD_PLIST" 2>/dev/null || true
+        launchctl bootout "gui/$(id -u)" "$LAUNCHD_PLIST" 2>/dev/null || \
+            launchctl unload "$LAUNCHD_PLIST" 2>/dev/null || true
         rm -f "$LAUNCHD_PLIST"
         info "Launchd user agent removed"
     fi
@@ -46,10 +47,27 @@ uninstall_smartloop() {
     # Remove legacy system daemon if present (macOS)
     if [ -f "$LEGACY_LAUNCHD_PLIST" ]; then
         info "Removing legacy system daemon..."
-        sudo launchctl unload "$LEGACY_LAUNCHD_PLIST" 2>/dev/null || true
+        sudo launchctl bootout "system" "$LEGACY_LAUNCHD_PLIST" 2>/dev/null || \
+            sudo launchctl unload "$LEGACY_LAUNCHD_PLIST" 2>/dev/null || true
         sudo rm -f "$LEGACY_LAUNCHD_PLIST"
         info "Legacy launchd daemon removed"
     fi
+
+    # Kill any remaining slp processes
+    if pkill -f "${INSTALL_DIR}/slp" 2>/dev/null; then
+        info "Stopped running slp processes"
+        sleep 1
+        # Force kill if still running
+        pkill -9 -f "${INSTALL_DIR}/slp" 2>/dev/null || true
+    fi
+
+    # Remove symlinks
+    for link in "$HOME/.local/bin/slp" /usr/local/bin/slp; do
+        if [ -L "$link" ]; then
+            rm -f "$link"
+            info "Removed symlink ${link}"
+        fi
+    done
 
     # Remove install directory
     if [ -d "$INSTALL_DIR" ]; then
