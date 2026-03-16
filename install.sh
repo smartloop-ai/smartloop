@@ -15,7 +15,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="9d4986b1652c8f8f04d594b28d575b7be41fa905839880dbeeda8a422652cd04"
+DARWIN_ARM64_SHA256="6363fe27efac6b1eeee6d60aa1bf215b24dfa35d2032df16a38122c384dc0634"
 LINUX_AMD64_SHA256="5cdf9f0392ef487046e67ea842fc9c9926f1700a067de6256084e4e19348af28"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
@@ -312,12 +312,42 @@ setup_launchd_service() {
 </plist>
 EOF
 
-    # Unload any existing service before loading
-    launchctl bootout "gui/$(id -u)/com.smartloop.server" 2>/dev/null || \
-        launchctl unload "$plist" 2>/dev/null || true
-    launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null || \
-        launchctl load -w "$plist"
+    local domain="gui/$(id -u)"
+    local service_target="${domain}/com.smartloop.server"
 
+    # Fully stop and remove any existing service before loading the new plist.
+    # Try the modern API first, fall back to legacy, and wait for clean teardown.
+    if launchctl print "$service_target" &>/dev/null; then
+        launchctl bootout "$service_target" 2>/dev/null || \
+            launchctl unload "$plist" 2>/dev/null || true
+        sleep 1
+    fi
+
+    # Remove quarantine attributes that can cause launchctl I/O errors
+    xattr -dr com.apple.quarantine "$plist" 2>/dev/null || true
+    xattr -dr com.apple.quarantine "${INSTALL_DIR}/slp" 2>/dev/null || true
+
+    # Load the service with retry — transient I/O errors can occur right after
+    # bootout or when the binary was just extracted.
+    local attempts=0
+    local max_attempts=3
+    while [ $attempts -lt $max_attempts ]; do
+        if launchctl bootstrap "$domain" "$plist" 2>/dev/null; then
+            break
+        fi
+        attempts=$((attempts + 1))
+        if [ $attempts -lt $max_attempts ]; then
+            sleep 1
+        fi
+    done
+
+    # If bootstrap never succeeded, try the legacy load as a last resort
+    if ! launchctl print "$service_target" &>/dev/null; then
+        launchctl load -w "$plist" 2>/dev/null || true
+    fi
+
+    # Verify the service is running (give it a moment to start)
+    sleep 1
     if ! launchctl list com.smartloop.server 2>/dev/null | grep -q '"PID"'; then
         echo -e "${RED}Service failed to start.${NC} Check logs with: tail -50 ${log_file}"
     fi
