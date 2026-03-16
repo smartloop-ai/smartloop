@@ -7,7 +7,6 @@ to avoid reloading the model on each invocation.
 """
 
 import argparse
-import gc
 import os
 import certifi
 import multiprocessing
@@ -16,7 +15,6 @@ from smartloop import __version__
 from smartloop.auth import credential_store
 from smartloop.server import read_port_file
 
-from commands.console import settings, console, logger
 from commands.base import Command
 from commands.init import InitCommand
 from commands.document import DocumentCommand

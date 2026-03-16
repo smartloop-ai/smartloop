@@ -86,6 +86,28 @@ try:
 except ImportError:
     pass
 
+# Collect rapidocr packages (OCR engine for docling)
+try:
+    import rapidocr
+    rapidocr_base_dir = Path(rapidocr.__file__).parent
+    datas.append((str(rapidocr_base_dir), 'rapidocr'))
+except ImportError:
+    pass
+
+try:
+    import rapidocr_onnxruntime
+    rapidocr_dir = Path(rapidocr_onnxruntime.__file__).parent
+    datas.append((str(rapidocr_dir), 'rapidocr_onnxruntime'))
+except ImportError:
+    pass
+
+try:
+    import rapidocr_paddle
+    rapidocr_paddle_dir = Path(rapidocr_paddle.__file__).parent
+    datas.append((str(rapidocr_paddle_dir), 'rapidocr_paddle'))
+except ImportError:
+    pass
+
 
 a = Analysis(
     ['main.py'],
@@ -117,6 +139,11 @@ a = Analysis(
         'pysqlite3',
         'sqlite3',
         'multipart',
+        'rapidocr',
+        'rapidocr.cli',
+        'rapidocr.runtime',
+        'rapidocr_onnxruntime',
+        'rapidocr_paddle',
     ],
     hookspath=[],
     hooksconfig={},
