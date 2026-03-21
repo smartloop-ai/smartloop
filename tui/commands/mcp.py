@@ -32,9 +32,10 @@ class MCP:
             parts = rest.split()
             if parts:
                 name = parts[0]
-                self._current_worker = self._mcp_add_local(name)
+                cmd_args = parts[1:] if len(parts) > 1 else []
+                self._current_worker = self._mcp_add_local(name, cmd_args)
             else:
-                self._append_system("Usage: /mcp add local <name>")
+                self._append_system("Usage: /mcp add local <name> [args...]")
         elif args.startswith("add "):
             url = args[4:].strip()
             if url:
@@ -108,11 +109,13 @@ class MCP:
             self._clear_loading()
 
     @work(exclusive=True)
-    async def _mcp_add_local(self, name: str) -> None:
+    async def _mcp_add_local(self, name: str, args: list[str] = []) -> None:
         """Register a local MCP server via the unified register endpoint."""
         self._set_loading(f"Registering local MCP server '{name}'...")
         try:
-            payload = {"server_type": "local", "name": name}
+            payload: dict = {"server_type": "local", "name": name}
+            if args:
+                payload["args"] = args
             async with httpx.AsyncClient(timeout=30) as client:
                 resp = await client.post(
                     f"{self.server_url}/v1/projects/{self.project_id}/mcp/register",

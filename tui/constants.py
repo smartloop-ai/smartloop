@@ -6,7 +6,7 @@ SLASH_COMMANDS = [
     ("/document list", "List project documents"),
     ("/document remove <#>", "Remove a document by index"),
     ("/mcp add <url>", "Register a remote MCP server"),
-    ("/mcp add local <name> <cwd> <cmd> [args]", "Register a local MCP server"),
+    ("/mcp add local <name> [args]", "Register a local MCP server"),
     ("/mcp list", "List registered MCP servers"),
     ("/mcp remove <#>", "Remove an MCP server by index"),
     ("/project add <name>", "Create a new project"),
