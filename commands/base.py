@@ -82,6 +82,20 @@ class Command:
             return False
         return True
 
+    def _resolve_project_id(self) -> str | None:
+        """Return the current project ID, resolving from the server if needed."""
+        pid = getattr(self, "project_id", None)
+        if pid:
+            return pid
+        try:
+            data = requests.get(f"{self._base_url()}/v1/projects", timeout=10).json()
+            for p in data.get("projects", []):
+                if p.get("current"):
+                    return p["id"]
+        except RequestException:
+            pass
+        return None
+
     def _ensure_ready(self) -> bool:
         """Guarantee the server has a model + project (fast no-op if already ready)."""
         if self._is_ready():

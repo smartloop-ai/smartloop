@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import requests
@@ -29,18 +30,23 @@ class DocumentCommand(Command):
         """Add a document source."""
         if not self._require_server():
             return
+        project_id = self._resolve_project_id()
+        if not project_id:
+            console.print("[red]No current project. Create or switch to a project first.[/red]")
+            return
         try:
-            with console.status("[bold cyan]Processing document...", spinner="dots"):
+            with console.status("[bold cyan]Processing document...", spinner="dots") as status:
                 resp = requests.post(
-                    f"{self._base_url()}/v1/documents",
+                    f"{self._base_url()}/v1/projects/{project_id}/documents",
                     json={"source": self.args.file_path},
                     timeout=300,
+                    stream=True,
                 )
                 resp.raise_for_status()
-                data = resp.json()
-            for doc in data.get("documents", []):
+                documents = self._consume_sse(resp, status)
+            for doc in documents:
                 console.print(f"[{SLP_PRIMARY}]Added: {Path(doc['path']).name} (id={doc['id']})[/{SLP_PRIMARY}]")
-            if not data.get("documents"):
+            if not documents:
                 console.print("[yellow]No new documents added (may already exist)[/yellow]")
         except requests.HTTPError as e:
             detail = e.response.json().get("detail", str(e)) if e.response is not None else str(e)
@@ -48,13 +54,44 @@ class DocumentCommand(Command):
         except RequestException as e:
             console.print(f"[red]API Error: {e}[/red]")
 
+    @staticmethod
+    def _consume_sse(resp: requests.Response, status) -> list[dict]:
+        """Parse an SSE stream from the document upload endpoint.
+
+        Returns the list of documents from the final ``complete`` event.
+        """
+        event_type: str | None = None
+        documents: list[dict] = []
+        for line in resp.iter_lines(decode_unicode=True):
+            if not line:
+                event_type = None
+                continue
+            if line.startswith("event:"):
+                event_type = line[len("event:"):].strip()
+            elif line.startswith("data:"):
+                payload = json.loads(line[len("data:"):].strip())
+                if event_type == "progress":
+                    stage = payload.get("stage", "processing")
+                    filename = payload.get("filename", "")
+                    label = f"[bold cyan]{stage.capitalize()}"
+                    if filename:
+                        label += f": {filename}"
+                    status.update(label)
+                elif event_type == "complete":
+                    documents = payload.get("documents", [])
+        return documents
+
     def delete(self) -> None:
         """Delete a document by ID."""
         if not self._require_server():
             return
+        project_id = self._resolve_project_id()
+        if not project_id:
+            console.print("[red]No current project. Create or switch to a project first.[/red]")
+            return
         try:
             resp = requests.delete(
-                f"{self._base_url()}/v1/documents/{self.args.document_id}",
+                f"{self._base_url()}/v1/projects/{project_id}/documents/{self.args.document_id}",
                 timeout=30,
             )
             resp.raise_for_status()
