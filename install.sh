@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="1.0.2"
+VERSION="1.0.1"
 BASE_URL="https://storage.googleapis.com/smartloop-gcp-us-east-releases/${VERSION}"
 INSTALL_DIR="$HOME/.smartloop"
 
@@ -15,8 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Expected sha256 checksums
-DARWIN_ARM64_SHA256="6363fe27efac6b1eeee6d60aa1bf215b24dfa35d2032df16a38122c384dc0634"
-LINUX_AMD64_SHA256="5cdf9f0392ef487046e67ea842fc9c9926f1700a067de6256084e4e19348af28"
+DARWIN_ARM64_SHA256="dd66668fe80a3e25675f0b4626c4b360f00e7881ec3243e6d689c68a3f430891"
+LINUX_AMD64_SHA256="16b4b9758e65295f24db177423d098fc28f07870d641e731a42bfb6cd08d8f52"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
