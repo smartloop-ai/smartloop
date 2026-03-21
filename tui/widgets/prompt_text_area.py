@@ -68,7 +68,7 @@ class PromptTextArea(TextArea):
                 menu.display = False
                 return
 
-        if event.key == "shift+enter":
+        if event.key in ("shift+enter", "ctrl+j"):
             event.stop()
             event.prevent_default()
             self.insert("\n")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import httpx
@@ -15,9 +16,13 @@ class Document:
     """Command handler for _handle_document_command and all _document_* helpers."""
 
     server_url: str
+    project_id: str | None
 
     def _handle_document_command(self, args: str) -> None:
         """Dispatch /document sub-commands."""
+        if not self.project_id:
+            self._append_system("No current project. Create or switch to a project first.")
+            return
         if args.startswith("add "):
             path = args[4:].strip()
             if path:
@@ -40,16 +45,34 @@ class Document:
         """Add a document to the project."""
         self._set_loading("Processing document...")
         try:
+            documents: list[dict] = []
+            event_type: str | None = None
             async with httpx.AsyncClient(timeout=300) as client:
-                resp = await client.post(
-                    f"{self.server_url}/v1/documents",
+                async with client.stream(
+                    "POST",
+                    f"{self.server_url}/v1/projects/{self.project_id}/documents",
                     json={"source": source},
-                )
-                resp.raise_for_status()
-                data = resp.json()
-            docs = data.get("documents", [])
-            if docs:
-                for doc in docs:
+                ) as resp:
+                    resp.raise_for_status()
+                    async for line in resp.aiter_lines():
+                        if not line:
+                            event_type = None
+                            continue
+                        if line.startswith("event:"):
+                            event_type = line[len("event:"):].strip()
+                        elif line.startswith("data:"):
+                            payload = json.loads(line[len("data:"):].strip())
+                            if event_type == "progress":
+                                stage = payload.get("stage", "processing")
+                                filename = payload.get("filename", "")
+                                label = stage.capitalize()
+                                if filename:
+                                    label += f": {filename}"
+                                self._set_loading(label)
+                            elif event_type == "complete":
+                                documents = payload.get("documents", [])
+            if documents:
+                for doc in documents:
                     name = Path(doc["path"]).name
                     self._append_system(f"Added: {name} (id={doc['id']})")
             else:
@@ -68,7 +91,9 @@ class Document:
         self._set_loading("Fetching documents...")
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.get(f"{self.server_url}/v1/documents")
+                resp = await client.get(
+                    f"{self.server_url}/v1/projects/{self.project_id}/documents"
+                )
                 resp.raise_for_status()
                 docs = resp.json().get("documents", [])
             if not docs:
@@ -99,7 +124,9 @@ class Document:
         self._set_loading("Removing document...")
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.get(f"{self.server_url}/v1/documents")
+                resp = await client.get(
+                    f"{self.server_url}/v1/projects/{self.project_id}/documents"
+                )
                 resp.raise_for_status()
                 docs = resp.json().get("documents", [])
 
@@ -108,7 +135,9 @@ class Document:
                     return
 
                 doc = docs[index - 1]
-                del_resp = await client.delete(f"{self.server_url}/v1/documents/{doc['id']}")
+                del_resp = await client.delete(
+                    f"{self.server_url}/v1/projects/{self.project_id}/documents/{doc['id']}"
+                )
                 del_resp.raise_for_status()
                 name = Path(doc["path"]).name
                 self._append_system(f"Removed: {name}")
