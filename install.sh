@@ -16,7 +16,7 @@ NC='\033[0m'
 
 # Expected sha256 checksums
 DARWIN_ARM64_SHA256="64a7c3046fd27bcc35b5ef6d63985fafe19b14f15942d7c3ac6c13c980eb6a0e"
-LINUX_AMD64_SHA256="ad066a7e7bf5f4a7704cc2bed0e9894dcae7bdd384443db8a3c92fef3129352c"
+LINUX_AMD64_SHA256="73570734d26e9422f4fe87de98d4a17ba94c3fd80937aed9ed8f8c0c275c628d"
 
 error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
 
