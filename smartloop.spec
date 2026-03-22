@@ -46,6 +46,14 @@ for sp in site.getsitepackages():
             binaries.append((str(lib_file), 'llama_cpp/lib'))
         break
 
+# Include uv binary (required for launching local MCP servers via uvx)
+try:
+    from uv import find_uv_bin
+    uv_bin = find_uv_bin()
+    binaries.append((uv_bin, 'uv'))
+except Exception:
+    pass
+
 try:
     import chromadb
     chromadb_dir = Path(chromadb.__file__).parent
