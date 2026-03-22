@@ -125,9 +125,29 @@ systemctl --user status smartloop
 
 ### Requirements
 
-- macOS (Apple Silicon) or Linux (x86_64)
-- Python 3.11 (required for installing from source)
-- CUDA 12.6 (optional, for NVIDIA GPU acceleration)
+| Requirement | Description | Required |
+|-------------|-------------|----------|
+| OS | macOS (Apple Silicon) or Linux (x86_64) | Yes |
+| Python | 3.11+ | Yes |
+| CUDA | 12.6+ (NVIDIA GPU acceleration) | No |
+
+### Troubleshooting
+
+#### GPU not detected / Falls back to CPU
+
+If the app falls back to CPU on a GPU-enabled system:
+
+1. **Enable persistence mode:**
+   ```bash
+   sudo nvidia-smi -pm ENABLED
+   ```
+
+2. **Verify GPU detection:**
+   ```bash
+   nvidia-smi
+   ```
+
+If issues persist, ensure NVIDIA drivers are properly installed.
 
 ### License
 
